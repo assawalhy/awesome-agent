@@ -1,20 +1,18 @@
 ---
-description: Add a task to the active epic it belongs to, then start it after current WIP
+description: Add a new task to the current epic's TODO and start working after current WIP is done
 ---
 
 # /todo
 
-Add a task to the epic it belongs to, then execute it.
+Add a new task and then execute it, respecting in-progress work.
 
-1. List active epics: in `.agents/plans/`, any `<NN>-<slug>` whose `TODO.md` still has
-   unfinished `- [ ]` items.
-2. Pick the epic the task most clearly belongs to, judging from its `PLAN.md` goal/title.
-   - If exactly one active epic matches, use it.
-   - If several match, ask the user which epic this task belongs to.
-3. If the task does NOT fit any active epic, stop and ASK the user whether to create a new
-   epic for it (or leave it untracked). Never silently invent a new epic without asking.
-4. Append `- [ ] <task>` from `$ARGUMENTS` to that epic's `TODO.md` (create the file with a
-   `# TODO` header if missing).
-5. Finish whatever you are currently doing (your in-progress WIP task) before starting the
-   new one — never leave half-done work behind.
-6. Start the task. Mark `- [x]` only when it is actually finished and verified.
+1. Find the active epic: look in `.agents/plans/` for the highest-numbered `<num>-<epic>/`
+   directory. If several exist, ask the user which epic this task belongs to if you can certainly pick one.
+2. If no epic exists yet, create one: `mkdir -p .agents/plans/NN-<slug>` and seed a
+   `PLAN.md` (for a big feature, use `/epic` instead).
+3. Open that epic's `TODO.md` (create it with a `# TODO` header if missing).
+4. Finish whatever you are currently doing (your in-progress WIP task) before starting
+   the new one — never leave half-done work behind.
+5. Append the new task from `$ARGUMENTS` as a `- [ ] <task>` line.
+6. Once the current WIP is wrapped up, start the new task. Mark `- [x]` only when it is
+   actually finished and verified.

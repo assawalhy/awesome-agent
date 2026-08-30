@@ -1,0 +1,5 @@
+# codex has no user slash-command or markdown-agent support.
+# Commands install into ~/.codex/prompts/ (directory mapping in install.sh).
+# The agent file is skipped here; skills install normally.
+# Lines starting with # are comments. One shared relpath per line.
+agents/awesome-agent.md

@@ -4,6 +4,12 @@
 # When a file is removed from the plugin, set version_removed to the release
 # that dropped it (e.g. 0.2.0). Uninstall/update then still clean it up from
 # every target it was ever installed to, even though it no longer exists here.
+#
+# Per-harness overlay files live under harnesses/<id>/ and are resolved at
+# install time: a harness-specific file wins over the same-named shared file,
+# and harnesses/<id>/.skip excludes shared files for that harness. Overlays are
+# tracked here by their logical path (e.g. agents/awesome-agent.md), so the
+# entries below are the only installable paths.
 
 commands/todo.md|0.1.0|-
 commands/continue.md|0.1.0|-

@@ -14,45 +14,52 @@ REGISTRY="${XDG_DATA_HOME:-$HOME/.local/share}/awesome-agent/registry.txt"
 PLUGIN_NAME="awesome-agent"
 
 # ---- harness config --------------------------------------------------------
-# harness_dirs <id> -> prints: <root> <cmd_dir> <agent_dir> <skill_root> <agent_supported>
+# harness_dirs <id> -> prints: <root> <cmd_dir> <agent_dir> <skill_root>
 harness_dirs() {
   case "$1" in
-    opencode)  printf "%s command agents %s/skills 1\n" "$HOME/.config/opencode" "$HOME/.config/opencode" ;;
-    claude)    printf "%s commands agents %s/skills 1\n" "$HOME/.claude" "$HOME/.claude" ;;
-    codex)     printf "%s prompts agents %s/skills 0\n" "$HOME/.codex" "$HOME/.codex" ;;  # no user slash commands / md agents; skills are the extension point
-    kilo)      printf "%s commands agents %s/skills 1\n" "$HOME/.config/kilo" "$HOME/.kilocode" ;;
-    kiro)      printf "%s commands agents %s/skills 1\n" "$HOME/.kiro" "$HOME/.kiro" ;;
-    kimi)      printf "%s commands agents %s/skills 1\n" "$HOME/.kimi-code" "$HOME/.kimi-code" ;;
-    deepseek)  printf "%s commands agents %s/skills 1\n" "$HOME/.deepseek" "$HOME/.deepseek" ;;
-    cursor)    printf "%s commands agents %s/skills 1\n" "$PWD/.cursor" "$PWD/.cursor" ;;
+    opencode)  printf "%s command agents %s/skills\n" "$HOME/.config/opencode" "$HOME/.config/opencode" ;;
+    claude)    printf "%s commands agents %s/skills\n" "$HOME/.claude" "$HOME/.claude" ;;
+    codex)     printf "%s prompts agents %s/skills\n" "$HOME/.codex" "$HOME/.codex" ;;  # no user slash commands / md agents; the agent is skipped via harnesses/codex/.skip
+    kilo)      printf "%s commands agents %s/skills\n" "$HOME/.config/kilo" "$HOME/.kilocode" ;;
+    kiro)      printf "%s commands agents %s/skills\n" "$HOME/.kiro" "$HOME/.kiro" ;;
+    kimi)      printf "%s commands agents %s/skills\n" "$HOME/.kimi-code" "$HOME/.kimi-code" ;;
+    deepseek)  printf "%s commands agents %s/skills\n" "$HOME/.deepseek" "$HOME/.deepseek" ;;
+    cursor)    printf "%s commands agents %s/skills\n" "$PWD/.cursor" "$PWD/.cursor" ;;
     local)     local_dirs ;;
     *)         echo "" ;;
   esac
 }
 # mimic the harness detected in the current project folder, else default
 local_dirs() {
-  if   [ -d "$PWD/.opencode" ];   then printf "%s command agents %s/skills 1\n" "$PWD/.opencode" "$PWD/.opencode"
-  elif [ -d "$PWD/.claude" ];     then printf "%s commands agents %s/skills 1\n" "$PWD/.claude" "$PWD/.claude"
-  elif [ -d "$PWD/.kilocode" ];   then printf "%s commands agents %s/skills 1\n" "$PWD/.kilocode" "$PWD/.kilocode"
-  elif [ -d "$PWD/.codex" ];      then printf "%s prompts agents %s/skills 0\n" "$PWD/.codex" "$PWD/.codex"
-  elif [ -d "$PWD/.cursor" ];     then printf "%s commands agents %s/skills 1\n" "$PWD/.cursor" "$PWD/.cursor"
-  elif [ -d "$PWD/.kiro" ];       then printf "%s commands agents %s/skills 1\n" "$PWD/.kiro" "$PWD/.kiro"
-  elif [ -d "$PWD/.kimi-code" ];  then printf "%s commands agents %s/skills 1\n" "$PWD/.kimi-code" "$PWD/.kimi-code"
-  elif [ -d "$PWD/.deepseek" ];   then printf "%s commands agents %s/skills 1\n" "$PWD/.deepseek" "$PWD/.deepseek"
-  else printf "%s command agents %s/skills 1\n" "$PWD/.awesome-agent" "$PWD/.awesome-agent"; fi
+  if   [ -d "$PWD/.opencode" ];   then printf "%s command agents %s/skills\n" "$PWD/.opencode" "$PWD/.opencode"
+  elif [ -d "$PWD/.claude" ];     then printf "%s commands agents %s/skills\n" "$PWD/.claude" "$PWD/.claude"
+  elif [ -d "$PWD/.kilocode" ];   then printf "%s commands agents %s/skills\n" "$PWD/.kilocode" "$PWD/.kilocode"
+  elif [ -d "$PWD/.codex" ];      then printf "%s prompts agents %s/skills\n" "$PWD/.codex" "$PWD/.codex"
+  elif [ -d "$PWD/.cursor" ];     then printf "%s commands agents %s/skills\n" "$PWD/.cursor" "$PWD/.cursor"
+  elif [ -d "$PWD/.kiro" ];       then printf "%s commands agents %s/skills\n" "$PWD/.kiro" "$PWD/.kiro"
+  elif [ -d "$PWD/.kimi-code" ];  then printf "%s commands agents %s/skills\n" "$PWD/.kimi-code" "$PWD/.kimi-code"
+  elif [ -d "$PWD/.deepseek" ];   then printf "%s commands agents %s/skills\n" "$PWD/.deepseek" "$PWD/.deepseek"
+  else printf "%s command agents %s/skills\n" "$PWD/.awesome-agent" "$PWD/.awesome-agent"; fi
 }
 harness_root() { local d; d="$(harness_dirs "$1")"; [ -z "$d" ] && echo "" || echo "${d%% *}"; }
 # map a manifest relpath to its absolute installed path for a given harness
 target_file() {
   local h="$1" rp="$2" root_override="${3:-}"
-  local root cmd_dir agent_dir skill_root supported
-  read -r root cmd_dir agent_dir skill_root supported <<< "$(harness_dirs "$h")"
+  local root cmd_dir agent_dir skill_root logical
+  read -r root cmd_dir agent_dir skill_root <<< "$(harness_dirs "$h")"
   [ -n "$root_override" ] && root="$root_override"
+  logical="$rp"
   case "$rp" in
-    commands/*) echo "$root/$cmd_dir/$(basename "$rp")" ;;
-    agents/*)   [ "$supported" = 1 ] && echo "$root/$agent_dir/${rp#agents/}" || echo "" ;;
-    skills/*)   echo "$skill_root/${rp#skills/}" ;;
-    *)          echo "$root/$(basename "$rp")" ;;
+    harnesses/*)                                  # overlay relpath -> logical path
+      logical="${rp#harnesses/$h/}"
+      [ "$logical" = "$rp" ] && return 1          # overlay for a different harness
+      ;;
+  esac
+  case "$logical" in
+    commands/*) echo "$root/$cmd_dir/$(basename "$logical")" ;;
+    agents/*)   echo "$root/$agent_dir/${logical#agents/}" ;;
+    skills/*)   echo "$skill_root/${logical#skills/}" ;;
+    *)          echo "$root/$(basename "$logical")" ;;
   esac
 }
 harness_installed() {
@@ -85,18 +92,23 @@ harness_label() {
 }
 ALL_IDS=(opencode claude codex kilo kiro kimi deepseek cursor local)
 
-# ---- agent rendering -------------------------------------------------------
-# body = markdown after the frontmatter block
-agent_body() { awk 'BEGIN{n=0} /^---$/{n++} n>=2{print}' "$SCRIPT_DIR/agents/awesome-agent.md"; }
-# render the agent for harnesses whose frontmatter schema differs from opencode's
-agent_render() {
-  local h="$1"
-  if [ "$h" = claude ] || [ "$h" = cursor ]; then
-    printf -- '---\nname: awesome-agent\ndescription: Plan-first coding agent for the awesome-agent plugin. Drafts a readable PLAN.md + TODO.md, asks the user to continue or refine, then executes and can orchestrate parallel sub-agents on git worktrees.\ntools: Read, Write, Edit, Bash, Glob, Grep, Task\n---\n'
-    agent_body
-  else
-    cat "$SCRIPT_DIR/agents/awesome-agent.md"
+# ---- per-harness file resolution --------------------------------------------
+# Per-harness overlay files live in harnesses/<id>/ and mirror that harness's
+# native layout. Resolution for a shared relpath: a harness-specific file wins
+# over the shared base; harnesses/<id>/.skip lists shared relpaths NOT installed
+# for that harness. Nuances live in files, not in bash render logic.
+src_for() {
+  local h="$1" rp="$2"
+  if [ -f "$SCRIPT_DIR/harnesses/$h/.skip" ] && grep -qxF "$rp" "$SCRIPT_DIR/harnesses/$h/.skip" 2>/dev/null; then
+    return 1
   fi
+  if [ -f "$SCRIPT_DIR/harnesses/$h/$rp" ]; then
+    echo "harnesses/$h/$rp"; return 0
+  fi
+  if [ -f "$SCRIPT_DIR/$rp" ]; then
+    echo "$rp"; return 0
+  fi
+  return 1
 }
 
 # ---- manifest helpers ------------------------------------------------------
@@ -326,23 +338,17 @@ opencode_unset_default() {
 
 # ---- actions ---------------------------------------------------------------
 do_install() {
-  local id="$1" root cmd_dir agent_dir skill_root supported
-  read -r root cmd_dir agent_dir skill_root supported <<< "$(harness_dirs "$id")"
+  local id="$1" root cmd_dir agent_dir skill_root
+  read -r root cmd_dir agent_dir skill_root <<< "$(harness_dirs "$id")"
   [ -z "$root" ] && { echo "! unknown target $id"; return 1; }
-  mkdir -p "$root/$cmd_dir" "$root/$agent_dir" "$skill_root"
-  local add=() rp dest
+  local add=() rp src dest
   while IFS= read -r rp; do
     [ -z "$rp" ] && continue
-    local src="$SCRIPT_DIR/$rp"
-    [ -f "$src" ] || continue
+    src="$(src_for "$id" "$rp")" || continue      # .skip excluded, or no source
     dest="$(target_file "$id" "$rp" "$root")"
-    [ -z "$dest" ] && continue                    # e.g. agents unsupported on codex
+    [ -z "$dest" ] && continue                    # e.g. overlay for another harness
     mkdir -p "$(dirname "$dest")"
-    if [ "$rp" = "agents/awesome-agent.md" ]; then
-      agent_render "$id" > "$dest"
-    else
-      cp "$src" "$dest"
-    fi
+    cp "$SCRIPT_DIR/$src" "$dest"
     add+=("$rp")
   done < <(manifest_current)
   # prune legacy files installed here but later removed from the plugin

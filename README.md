@@ -83,6 +83,17 @@ native directory, so one plugin works across OpenCode, Claude Code, etc. without
 packaging. Command files use Claude-style frontmatter (`description` + `$ARGUMENTS`),
 which OpenCode, Claude Code and Kilo all accept.
 
+### 6b. Per-harness files, base + overlays
+Harness nuances are covered by *files*, not bash rendering logic. `commands/`, `agents/`
+and `skills/` are the shared base; `harnesses/<id>/` holds files that differ per harness
+(we follow the base + per-harness overlays pattern used by Kustomize/ArgoCD and the
+wshobson/agents multi-harness plugin marketplace). Resolution at install time:
+a harness-specific file wins over the shared base, and `harnesses/<id>/.skip` lists
+shared files *not* installed for that harness (e.g. codex has no markdown agents).
+Files that only differ in install *location* (codex commands → `prompts/`) stay a
+directory mapping. This keeps `./install.sh` a single command with no build step, and
+harness quirks stay visible and reviewable as plain files.
+
 ### 7. MANIFEST-based tracking (safe uninstall of removed files)
 `MANIFEST.txt` records every shipped file as
 `repo-relative-path | version_added | version_removed` (`-` while live). The installer keeps
@@ -115,9 +126,13 @@ awesome-agent/
   install.sh            # detector + TUI + install/update/uninstall
   VERSION               # plugin version
   MANIFEST.txt          # tracked files (added/removed versions)
-  commands/             # slash commands: todo, continue, epic, go
-  agents/               # awesome-agent (plan-first agent)
-  skills/               # awesome-plan (the workflow skill)
+  commands/             # slash commands: todo, continue, epic, go (shared base)
+  agents/               # awesome-agent (plan-first agent) — shared, opencode-native
+  skills/               # awesome-plan (the workflow skill) — shared base
+  harnesses/            # per-harness overlays (files that differ per harness)
+    claude/agents/awesome-agent.md   # tools: frontmatter variant for Claude Code
+    cursor/agents/awesome-agent.md   # tools: frontmatter variant for Cursor
+    codex/.skip                      # agents/awesome-agent.md (codex has no md agents)
 ```
 
 ## Limitations
@@ -125,8 +140,8 @@ awesome-agent/
 - Verified directory mappings: opencode, claude, codex, kilo, cursor. `kiro`, `kimi` and
   `deepseek` use best-effort layouts (their public docs are thin) — verify per harness.
 - Codex has no user-defined slash commands or file-based agents: commands install into
-  `~/.codex/prompts/` (invoked as `/prompts:todo`, …), the agent file is skipped, and the
-  skill installs into `~/.codex/skills/`.
+  `~/.codex/prompts/` (invoked as `/prompts:todo`, …), the agent file is skipped via
+  `harnesses/codex/.skip`, and the skill installs into `~/.codex/skills/`.
 - Claude/Cursor agents are rendered with their `tools:`-list frontmatter; the body is shared.
 - `grill-me` has `disable-model-invocation`, so `/epic` uses awesome-plan's built-in interview
   (self-contained) instead of auto-triggering the external skill.

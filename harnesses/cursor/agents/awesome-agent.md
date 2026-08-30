@@ -1,18 +1,7 @@
 ---
+name: awesome-agent
 description: Plan-first coding agent for the awesome-agent plugin. Drafts a readable PLAN.md + TODO.md, asks the user to continue or refine, then executes and can orchestrate parallel sub-agents on git worktrees.
-mode: all
-permission:
-  read: allow
-  edit: allow
-  glob: allow
-  grep: allow
-  list: allow
-  bash: allow
-  task: allow
-  skill: allow
-  webfetch: allow
-  websearch: allow
-  lsp: allow
+tools: Read, Write, Edit, Bash, Glob, Grep, Task
 ---
 
 # awesome-agent
