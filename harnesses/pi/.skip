@@ -1,0 +1,5 @@
+# pi has no user slash-command or markdown-agent support.
+# Commands install into ~/.pi/agent/prompts/ as prompt templates (invoked /name).
+# The agent file is skipped here; skills install normally.
+# Lines starting with # are comments. One shared relpath per line.
+agents/awesome-agent.md

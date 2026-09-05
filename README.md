@@ -4,8 +4,8 @@
 > agentic coding to many AI harnesses.
 
 awesome-agent installs four slash commands, one custom agent, and one skill into any
-supported AI coding harness (OpenCode, Claude Code, Codex, Kilo, Kiro, Kimi, DeepSeek,
-Cursor, or your current project folder).
+supported AI coding harness (OpenCode, Claude Code, Codex, Pi, Kilo, Kiro, Kimi,
+DeepSeek, Cursor, or your current project folder).
 
 ## What you get
 
@@ -133,15 +133,20 @@ awesome-agent/
     claude/agents/awesome-agent.md   # tools: frontmatter variant for Claude Code
     cursor/agents/awesome-agent.md   # tools: frontmatter variant for Cursor
     codex/.skip                      # agents/awesome-agent.md (codex has no md agents)
+    pi/.skip                         # agents/awesome-agent.md (pi has no md agents)
 ```
 
 ## Limitations
 
-- Verified directory mappings: opencode, claude, codex, kilo, cursor. `kiro`, `kimi` and
+- Verified directory mappings: opencode, claude, codex, pi, kilo, cursor. `kiro`, `kimi` and
   `deepseek` use best-effort layouts (their public docs are thin) — verify per harness.
 - Codex has no user-defined slash commands or file-based agents: commands install into
   `~/.codex/prompts/` (invoked as `/prompts:todo`, …), the agent file is skipped via
   `harnesses/codex/.skip`, and the skill installs into `~/.codex/skills/`.
+- Pi likewise has no user-defined slash commands or file-based agents: commands install into
+  `~/.pi/agent/prompts/` as prompt templates (invoked as `/todo`, …), the agent file is skipped
+  via `harnesses/pi/.skip`, and the skill installs into `~/.pi/agent/skills/`. Pi's layout is
+  evolving fast (v0.84.x); these are its documented stable globals.
 - Claude/Cursor agents are rendered with their `tools:`-list frontmatter; the body is shared.
 - `grill-me` has `disable-model-invocation`, so `/epic` uses awesome-plan's built-in interview
   (self-contained) instead of auto-triggering the external skill.

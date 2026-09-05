@@ -20,6 +20,7 @@ harness_dirs() {
     opencode)  printf "%s command agents %s/skills\n" "$HOME/.config/opencode" "$HOME/.config/opencode" ;;
     claude)    printf "%s commands agents %s/skills\n" "$HOME/.claude" "$HOME/.claude" ;;
     codex)     printf "%s prompts agents %s/skills\n" "$HOME/.codex" "$HOME/.codex" ;;  # no user slash commands / md agents; the agent is skipped via harnesses/codex/.skip
+    pi)        printf "%s prompts agents %s/skills\n" "$HOME/.pi/agent" "$HOME/.pi/agent" ;;  # no user slash commands / md agents; the agent is skipped via harnesses/pi/.skip
     kilo)      printf "%s commands agents %s/skills\n" "$HOME/.config/kilo" "$HOME/.kilocode" ;;
     kiro)      printf "%s commands agents %s/skills\n" "$HOME/.kiro" "$HOME/.kiro" ;;
     kimi)      printf "%s commands agents %s/skills\n" "$HOME/.kimi-code" "$HOME/.kimi-code" ;;
@@ -36,6 +37,7 @@ local_dirs() {
   elif [ -d "$PWD/.kilocode" ];   then printf "%s commands agents %s/skills\n" "$PWD/.kilocode" "$PWD/.kilocode"
   elif [ -d "$PWD/.codex" ];      then printf "%s prompts agents %s/skills\n" "$PWD/.codex" "$PWD/.codex"
   elif [ -d "$PWD/.cursor" ];     then printf "%s commands agents %s/skills\n" "$PWD/.cursor" "$PWD/.cursor"
+  elif [ -d "$PWD/.pi" ];         then printf "%s prompts agents %s/skills\n" "$PWD/.pi" "$PWD/.pi"
   elif [ -d "$PWD/.kiro" ];       then printf "%s commands agents %s/skills\n" "$PWD/.kiro" "$PWD/.kiro"
   elif [ -d "$PWD/.kimi-code" ];  then printf "%s commands agents %s/skills\n" "$PWD/.kimi-code" "$PWD/.kimi-code"
   elif [ -d "$PWD/.deepseek" ];   then printf "%s commands agents %s/skills\n" "$PWD/.deepseek" "$PWD/.deepseek"
@@ -67,6 +69,7 @@ harness_installed() {
     opencode)  [ -d "$HOME/.config/opencode" ] || command -v opencode >/dev/null 2>&1 && echo 1 ;;
     claude)    [ -d "$HOME/.claude" ] || command -v claude >/dev/null 2>&1 && echo 1 ;;
     codex)     [ -d "$HOME/.codex" ] || command -v codex >/dev/null 2>&1 && echo 1 ;;
+    pi)        [ -d "$HOME/.pi/agent" ] || command -v pi >/dev/null 2>&1 && echo 1 ;;
     kilo)      [ -d "$HOME/.kilocode" ] || command -v kilo >/dev/null 2>&1 && echo 1 ;;
     kiro)      [ -d "$HOME/.kiro" ] || command -v kiro >/dev/null 2>&1 && echo 1 ;;
     kimi)      [ -d "$HOME/.kimi-code" ] && echo 1 ;;
@@ -81,6 +84,7 @@ harness_label() {
     opencode)  echo "OpenCode ($HOME/.config/opencode)" ;;
     claude)    echo "Claude Code ($HOME/.claude)" ;;
     codex)     echo "Codex ($HOME/.codex, commands as /prompts:*)" ;;
+    pi)        echo "Pi ($HOME/.pi/agent, commands as /name prompt templates)" ;;
     kilo)      echo "Kilo Code ($HOME/.config/kilo, skills $HOME/.kilocode)" ;;
     kiro)      echo "Kiro ($HOME/.kiro)" ;;
     kimi)      echo "Kimi Code ($HOME/.kimi-code)" ;;
@@ -90,7 +94,7 @@ harness_label() {
     *)         echo "$1" ;;
   esac
 }
-ALL_IDS=(opencode claude codex kilo kiro kimi deepseek cursor local)
+ALL_IDS=(opencode claude codex pi kilo kiro kimi deepseek cursor local)
 
 # ---- per-harness file resolution --------------------------------------------
 # Per-harness overlay files live in harnesses/<id>/ and mirror that harness's
@@ -397,7 +401,7 @@ Usage:
   $0 uninstall      remove from registered targets, incl. legacy files (TUI)
   $0 --all          non-interactive: install into every detected harness
   $0 --target a,b   install into listed ids
-                    (opencode,claude,codex,kilo,kiro,kimi,deepseek,cursor,local)
+                    (opencode,claude,codex,pi,kilo,kiro,kimi,deepseek,cursor,local)
   $0 --help         this message
 
 Files are tracked in MANIFEST.txt (rel_path|version_added|version_removed) so
