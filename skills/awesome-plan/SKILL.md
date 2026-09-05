@@ -24,6 +24,21 @@ Everything else proceeds through steps 1–4. When unsure, default to planning.
   invent one silently.
 - To start a NEW epic: create `.agents/plans/<NN+1>-<slug>/` (slug = 2-4 lowercase words).
 
+## 1.5 Research before Decisions (mandatory for non-trivial work)
+
+Before writing PLAN.md, resolve every non-obvious question yourself — do not defer
+decisions to execution:
+
+- Research the repo (code, data, prior epics), official docs, and the web for existing
+  solutions and best practices; compare real options with sources.
+- Every Approach/Decisions entry in PLAN.md must carry a one-line rationale (and a source
+  where one exists). Rejected alternatives are named with why they lost.
+- "Spike", "pick the winner later", "decide during execution" phrasing is FORBIDDEN for
+  anything the user is being asked to approve. If something genuinely cannot be decided
+  before approval, put an explicit research TODO at the TOP of TODO.md and say so in the
+  approval ask — never hide an open decision inside implementation work.
+- Trivial tasks (step 0 fast path) skip this step entirely.
+
 ## 2. Write PLAN.md
 
 Keep it short and human-readable:
