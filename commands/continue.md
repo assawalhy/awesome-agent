@@ -4,16 +4,10 @@ description: Continue unfinished work, review TODO.md, and check sub-agents and 
 
 # /continue
 
-Pick up where the work left off and drive unfinished tasks to completion.
+Pick up where work left off — per the **awesome-plan** skill.
 
-1. Read the active epic's `TODO.md` (in `.agents/plans/<num>-<epic>/`). List every
-   unfinished `- [ ]` item.
-2. Check for running sub-agents and background jobs (e.g. task-tool runs, background
-   processes, queued agents) and report their status before kicking off new work. Wait
-   for or reconcile any in-flight jobs.
-3. Work through the unfinished TODO items in order. Stay focused: finish before starting
-   unrelated tasks.
-4. Verify each task (syntax gate + tests/e2e where applicable) and mark `- [x]` only when
-   truly done.
-5. If `TODO.md` is empty or missing, tell the user there is nothing queued and offer to
-   create one with `/todo` or `/epic`.
+1. List every open `- [ ]` item in the active epic's TODO.md.
+2. Check running sub-agents and background jobs; report status and reconcile
+   before starting new work.
+3. Work the items in order; finish before starting unrelated tasks.
+4. If nothing is queued, say so and offer `/todo` or `/epic`.
