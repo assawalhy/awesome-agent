@@ -1,11 +1,31 @@
 # awesome-agent
 
-> "Oh my openagent" — a drop-in plugin that brings plan-first, human-supervisable
+> Drop-in plugin that brings plan-first, human-supervisable, traceable, and parallel
 > agentic coding to many AI harnesses.
 
-awesome-agent installs four slash commands, one custom agent, and one skill into any
+`awesome-agent` installs four slash commands, one custom agent, and one skill into any
 supported AI coding harness (OpenCode, Claude Code, Codex, Pi, Kilo, Kiro, Kimi,
 DeepSeek, Cursor, or your current project folder).
+
+## The problem and the solution
+
+**I faced some issues when I work in a project where I run multiple agents to do different tasks or goals like:**
+- they conflict with each other
+- lose track of one's tasks and progress
+- can't handoff the work to another agent ot continue
+- can't know which one is working on what
+- don't have a record and history track of the dicision and trade-offs
+- the agent skip planning sometime
+- in OpenCode it is not direct to switch from Plan agent to Build agent
+- the plan is hard to read and is itself a puzzle to solve
+- the parallel agent runs multiple heavy tasks for e2e tests and build on my average machine that frozes and crashes
+
+**The solution of all of these issues is basically these simple fixes:**
+- track your plans and TODO list in .md files grouped together in epics
+- use the same agent (mode) for planning and executing
+- general instruction for the agent to research and get your opnion about the tradoffs and grilling you
+- tell the agent to show the plan in a human-readable way
+- use a single heavy tasks queue for all your agents and harnesses in your machine
 
 ## What you get
 
