@@ -18,6 +18,7 @@ tools:
 includeMcpJson: true
 resources:
   - skill://awesome-plan
+  - skill://pr-description
 allowedTools:
   - read
   - grep
@@ -26,6 +27,7 @@ allowedTools:
   - knowledge
   - introspect
   - subagent
+  - shell
 toolsSettings:
   shell:
     autoAllowReadonly: true
@@ -68,107 +70,9 @@ toolsSettings:
       - "^ruff\\s+(check|format)(\\s|$)"
       - "^mvn\\s+(test|compile|package|verify|clean|install)(\\s|$)"
       - "^gradle\\s+(test|build|check|clean)(\\s|$)"
-    deniedCommands:
-      - "^git\\s+push\\b"
-      - "^git\\s+push$"
-      - "^git\\s+clean\\s+(-[fdx]+|--.*)"
-      - "^git\\s+reset\\s+--hard\\s+HEAD~"
-      - "^git\\s+reset\\s+--hard\\s+[a-f0-9]{7,}"
-      - "^git\\s+branch\\s+-[dD]\\s+"
-      - "^git\\s+push\\s+--force"
-      - "^sudo\\b"
-      - "^su\\b"
-      - "^doas\\b"
-      - "^pkexec\\b"
-      - "^rm\\s+(-[rf]+|-[a-z]*r[a-z]*f[a-z]*|/)"
-      - "^rm\\s+-rf\\s+/"
-      - "^rm\\s+-rf\\s+~"
-      - "^rm\\s+-rf\\s+\\$HOME"
-      - "^rm\\s+-rf\\s+\\*"
-      - "^rmdir\\s+/"
-      - "^dd\\s+.*of=/dev/"
-      - "^mkfs\\."
-      - "^fdisk\\b"
-      - "^parted\\b"
-      - "^shred\\b"
-      - "^wipefs\\b"
-      - "^apt(\\s+-get)?\\s+install\\b"
-      - "^apt(\\s+-get)?\\s+(remove|purge|autoremove|upgrade|dist-upgrade|full-upgrade)\\b"
-      - "^aptitude\\s+(install|remove|purge|safe-upgrade|full-upgrade)\\b"
-      - "^dpkg\\s+(-i|--install)\\b"
-      - "^dnf\\s+(install|remove|upgrade|update)\\b"
-      - "^yum\\s+(install|remove|update|upgrade)\\b"
-      - "^rpm\\s+(-[iUvh]+|--install|--upgrade)\\b"
-      - "^pacman\\s+-[Ss].*[iuy]"
-      - "^pacman\\s+-[RS]"
-      - "^pip\\s+install\\b"
-      - "^pip3\\s+install\\b"
-      - "^pipx\\s+install\\b"
-      - "^poetry\\s+(install|add|update|remove)\\b"
-      - "^pipenv\\s+(install|update|uninstall)\\b"
-      - "^conda\\s+(install|update|remove)\\b"
-      - "^npm\\s+(install|i|add|update|uninstall|remove|ci)\\b"
-      - "^npm\\s+(i|install)\\s+-[gD]"
-      - "^yarn\\s+(add|install|remove|upgrade)\\b"
-      - "^pnpm\\s+(add|install|remove|update)\\b"
-      - "^bower\\s+(install|update|uninstall)\\b"
-      - "^jspm\\s+(install|update|uninstall)\\b"
-      - "^gem\\s+install\\b"
-      - "^bundle\\s+(install|update)\\b"
-      - "^cargo\\s+(install|update)\\b"
-      - "^rustup\\s+(update|default|toolchain)\\b"
-      - "^go\\s+(install|get|mod\\s+(download|tidy))\\b"
-      - "^go\\s+mod\\s+download\\b"
-      - "^go\\s+mod\\s+tidy\\b"
-      - "^cargo\\s+install\\b"
-      - "^rustup\\s+.*\\b(install|update)\\b"
-      - "^composer\\s+(install|update|require|remove)\\b"
-      - "^php\\s+artisan\\s+.*:(install|update)\\b"
-      - "^mix\\s+(deps\\.|)install\\b"
-      - "^mix\\s+deps\\.(update|compile)\\b"
-      - "^rebar3\\s+(compile|update|upgrade)\\b"
-      - "^nimble\\s+(install|update)\\b"
-      - "^dub\\s+(install|upgrade)\\b"
-      - "^vcpkg\\s+(install|remove|update)\\b"
-      - "^conan\\s+(install|update|remove)\\b"
-      - "^bundler\\s+(install|update)\\b"
-      - "^brew\\s+(install|uninstall|upgrade|reinstall)\\b"
-      - "^choco\\s+(install|uninstall|upgrade|update)\\b"
-      - "^scoop\\s+(install|uninstall|upgrade|update|reset)\\b"
-      - "^winget\\s+(install|uninstall|upgrade|update)\\b"
-      - "^flatpak\\s+(install|uninstall|update)\\b"
-      - "^snap\\s+(install|remove|refresh)\\b"
-      - "^nix-env\\s+(-[iUu]|--install|--uninstall|--upgrade)\\b"
-      - "^nixos-rebuild\\s+(switch|boot|test|upgrade)\\b"
-      - "^home-manager\\s+(switch|uninstall)\\b"
-      - "^curl\\s+.*\\|\\s*(sh|bash|zsh|ksh|fish)"
-      - "^wget\\s+.*\\|\\s*(sh|bash|zsh|ksh|fish)"
-      - "^curl\\s+.*-o\\s+/dev/"
-      - "^wget\\s+.*-O\\s+/dev/"
-      - "^security\\s+.*\\b(delete-keychain|delete-generic-password|delete-internet-password|unlock-keychain)\\b"
-      - "^security\\s+.*(delete-keychain|delete-generic-password|delete-internet-password)\\b"
-      - "^aws\\s+.*\\b(upload|put|delete|create|update|terminate|stop|start|reboot)\\b"
-      - "^scp\\s+.*\\bupload\\b"
-      - "^rsync\\s+.*--delete\\b"
-      - "^rsync\\s+.*-a.*--delete\\b"
-      - "^nc\\s+.*-e\\s+"
-      - "^ncat\\s+.*-e\\s+"
-      - "^socat\\s+.*EXEC:"
-      - "^gcloud\\s+.*\\b(deploy|create|delete|update)\\b"
-      - "^kubectl\\s+.*\\b(apply|delete|create|patch|replace)\\b"
-      - "^kubectl\\s+.*(apply|delete|create|patch|replace)\\b"
-      - "^terraform\\s+(apply|destroy|init|workspace\\s+(new|delete))\\b"
-      - "^ansible-playbook\\b"
-      - "^vagrant\\s+(up|destroy|halt|reload|suspend)\\b"
-      - "^docker\\s+(run|push|rmi|rm|stop|kill|restart|pause|unpause)\\b"
-      - "^docker\\s+system\\s+(prune|clean)\\b"
-      - "^docker-compose\\s+(up|down|restart|build|pull|push|rmi|rm)\\b"
-      - "^docker\\s+container\\s+(prune|rm)\\b"
-      - "^docker\\s+image\\s+(prune|rmi)\\b"
-      - "^docker\\s+volume\\s+(prune|rm)\\b"
-      - "^docker\\s+network\\s+(prune|rm)\\b"
-      - "^docker\\s+builder\\s+prune\\b"
     denyByDefault: false
+  grep_search:
+    caseSensitive: false
   write:
     allowedPaths:
       - "./**"
@@ -574,7 +478,6 @@ permissions:
         - "nixos-rebuild*upgradeb"
         - "home-manager*switchb"
         - "home-manager*uninstallb"
-        - "*"
         - "curl*-o*/dev/"
         - "wget*-O*/dev/"
         - "security*bdelete-keychainb"
@@ -652,7 +555,7 @@ permissions:
         - "docker*network*pruneb"
         - "docker*network*rmb"
         - "docker*builder*pruneb"
-      effect: deny
+      effect: ask
     - capability: fs_write
       match:
         - "./**"
@@ -669,7 +572,7 @@ permissions:
         - "~/.ssh/**"
         - "~/.gnupg/**"
         - "~/.config/gnupg/**"
-      effect: deny
+      effect: ask
     - capability: web_fetch
       match:
         - "*docs.kotlinlang.org*"
@@ -696,19 +599,25 @@ permissions:
         - "*privatebin.*"
         - "*0bin.net*"
         - "*hasteb.in*"
-      effect: deny
+      effect: ask
     - capability: fs_read
       effect: allow
-  policies:
-    - read-only-shell
 ---
 
-You are the awesome-agent. Follow the **awesome-plan** skill for every task.
+You are the awesome-agent — a full-capability coding agent that follows a plan-first workflow. You have access to all tools: shell, read, write, edit, grep, glob, subagent, and web.
 
-Non-negotiables from the skill:
+## How you work
 
-- **Approval gate**: no non-trivial execution before the user replies `go`.
-- **Research before decisions**: plans contain researched, decided choices with
-  rejected alternatives named — never defer decisions to execution.
-- **Verified tracking**: mark `- [x]` only when finished and verified; keep
-  PLAN.md/TODO.md short, plain, and human-readable.
+For every task, follow the **awesome-plan** skill:
+
+1. **Research** the codebase and options before deciding.
+2. **Draft a plan** (PLAN.md + TODO.md in `.agents/plans/<NN>-<slug>/`).
+3. **Ask for approval** — show the plan visually, then wait for the user to say `go`.
+4. **Execute** the approved plan step by step, marking tasks done when verified.
+
+## Rules
+
+- **Approval gate**: do not execute non-trivial work until the user replies `go`. Trivial one-liners and tasks where the user already gave a complete plan can skip this.
+- **Research before decisions**: every plan contains researched, decided choices with rejected alternatives named. Never defer decisions to execution.
+- **Verified tracking**: mark `- [x]` only when finished and verified; keep PLAN.md/TODO.md short, plain, and human-readable.
+- **Right epic or ask**: if no epic matches the task, ask before creating a new one.
