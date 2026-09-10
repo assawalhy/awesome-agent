@@ -37,6 +37,7 @@ DeepSeek, Cursor, or your current project folder).
 | `/go` | `commands/go.md` | Auto-execute the active plan; manual fallback if none |
 | `awesome-agent` | `agents/awesome-agent.md` | Plan-first agent you can delegate to |
 | `awesome-plan` | `skills/awesome-plan/SKILL.md` | The plan → approve → execute workflow the agent follows |
+| `pr-description` | `skills/pr-description/SKILL.md` | Write a PR description for the current branch — product or technical style |
 
 Plans and TODOs are stored under `.agents/plans/<NN>-<slug>/` (see your existing
 `~/.agents/AGENTS.md` convention), so the plugin slots into the workflow you already use.
@@ -148,7 +149,7 @@ awesome-agent/
   MANIFEST.txt          # tracked files (added/removed versions)
   commands/             # slash commands: todo, continue, epic, go (shared base)
   agents/               # awesome-agent (plan-first agent) — shared, opencode-native
-  skills/               # awesome-plan (the workflow skill) — shared base
+  skills/               # awesome-plan (the workflow skill), pr-description — shared base
   harnesses/            # per-harness overlays (files that differ per harness)
     claude/agents/awesome-agent.md   # tools: frontmatter variant for Claude Code
     cursor/agents/awesome-agent.md   # tools: frontmatter variant for Cursor

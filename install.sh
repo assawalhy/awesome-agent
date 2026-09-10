@@ -340,6 +340,69 @@ opencode_unset_default() {
   fi
 }
 
+# ---- kiro default_agent ----------------------------------------------------
+# Installing into kiro also sets awesome-agent as the default agent
+# ("chat.defaultAgent" in $root/settings/cli.json). The previous value is
+# recorded so uninstall can restore it.
+KIRO_STATE="${XDG_DATA_HOME:-$HOME/.local/share}/awesome-agent/kiro_default.txt"
+
+kiro_config_file() {
+  local root="$1"
+  [ -z "$root" ] && root="$(harness_root kiro)"
+  [ -z "$root" ] && return 1
+  echo "$root/settings/cli.json"
+}
+
+kiro_set_default() {
+  local root="$1" cfg prev tmp
+  cfg="$(kiro_config_file "$root")" || return 0
+  [ -f "$cfg" ] || return 0
+  prev="$(sed -n 's/.*"chat\.defaultAgent"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$cfg" | head -1)"
+  if [ ! -f "$KIRO_STATE" ] && [ "$prev" != "awesome-agent" ]; then
+    mkdir -p "$(dirname "$KIRO_STATE")"
+    if [ -n "$prev" ]; then
+      printf '%s\n' "$prev" > "$KIRO_STATE"
+    else
+      : > "$KIRO_STATE"
+    fi
+  fi
+  tmp="$(mktemp)"
+  if [ -n "$prev" ]; then
+    sed 's/\("chat\.defaultAgent"[[:space:]]*:[[:space:]]*"\)[^"]*"/\1awesome-agent"/' "$cfg" > "$tmp"
+  else
+    awk -v ins='  "chat.defaultAgent": "awesome-agent",' '
+      { print }
+      !done && /{/ { print ins; done=1 }
+    ' "$cfg" > "$tmp"
+  fi
+  mv "$tmp" "$cfg"
+  fix_dangling_comma "$cfg"
+  validate_json "$cfg"
+  echo "  + kiro: chat.defaultAgent -> awesome-agent ($cfg)"
+}
+
+kiro_unset_default() {
+  local root="$1" cfg prev tmp
+  cfg="$(kiro_config_file "$root")" || return 0
+  [ -f "$cfg" ] || { rm -f "$KIRO_STATE"; return 0; }
+  if [ -f "$KIRO_STATE" ]; then
+    prev="$(cat "$KIRO_STATE")"
+    rm -f "$KIRO_STATE"
+    tmp="$(mktemp)"
+    if [ -n "$prev" ]; then
+      sed 's|\("chat\.defaultAgent"[[:space:]]*:[[:space:]]*"\)[^"]*"|\1'"$prev"'"|' "$cfg" > "$tmp"
+    else
+      sed '/"chat\.defaultAgent"[[:space:]]*:/d' "$cfg" > "$tmp"
+    fi
+    mv "$tmp" "$cfg"
+    fix_dangling_comma "$cfg"
+    validate_json "$cfg"
+    echo "  - kiro: chat.defaultAgent restored/removed ($cfg)"
+  else
+    echo "  - kiro: chat.defaultAgent left as-is (pre-existing) ($cfg)"
+  fi
+}
+
 # ---- actions ---------------------------------------------------------------
 do_install() {
   local id="$1" root cmd_dir agent_dir skill_root
@@ -369,6 +432,9 @@ do_install() {
   if [ "$id" = opencode ]; then
     opencode_set_default "$root"
   fi
+  if [ "$id" = kiro ]; then
+    kiro_set_default "$root"
+  fi
 }
 do_uninstall() {
   local id="$1"
@@ -386,6 +452,9 @@ do_uninstall() {
   echo "  - $id (removed $removed file(s) from $root)"
   if [ "$id" = opencode ]; then
     opencode_unset_default "$root"
+  fi
+  if [ "$id" = kiro ]; then
+    kiro_unset_default "$root"
   fi
 }
 

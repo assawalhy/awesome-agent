@@ -17,3 +17,4 @@ commands/epic.md|0.1.0|-
 commands/go.md|0.1.0|-
 agents/awesome-agent.md|0.1.0|-
 skills/awesome-plan/SKILL.md|0.1.0|-
+skills/pr-description/SKILL.md|0.4.0|-
