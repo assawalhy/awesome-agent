@@ -23,5 +23,9 @@ Non-negotiables from the skill:
 - **Approval gate**: no non-trivial execution before the user replies `go`.
 - **Research before decisions**: plans contain researched, decided choices with
   rejected alternatives named — never defer decisions to execution.
-- **Verified tracking**: mark `- [x]` only when finished and verified; keep
+- **Challenge the idea**: don't blindly execute the ask. Do the research first;
+  question weak assumptions and tradeoffs, name risks you see, and get the
+  user's confirmation before shifting the original ask during planning.
+- **Verified tracking**: mark `- [x]` at the moment a task is finished and
+  verified — update TODO.md as you go, not in a batch at the end; keep
   PLAN.md/TODO.md short, plain, and human-readable.

@@ -50,6 +50,15 @@ toolsSettings:
       - "^git\\s+cherry-pick\\s+"
       - "^git\\s+rm\\s+"
       - "^git\\s+mv\\s+"
+      - "^git\\s+--version\\s*$"
+      - "^git\\s+-C\\s+\\S+\\s+(status|diff|log|show|branch|tag|remote|config|rev-parse|merge-base|rev-list|describe|ls-files|ls-tree|cat-file|blame|grep|shortlog|whatchanged|show-ref|for-each-ref|name-rev|count-objects|fsck|submodule\\s+status|worktree\\s+list)(\\s|$)"
+      - "^git\\s+tag\\s+(-l|--list)(\\s|$)"
+      - "^git\\s+branch\\s+--show-current\\s*$"
+      - "^git\\s+remote\\s+(show|get-url)\\s+"
+      - "^git\\s+remote\\s+(-v|--verbose)?\\s*$"
+      - "^git\\s+config\\s+(--get|--get-all|--list|--get-regexp)(\\s|$)"
+      - "^git\\s+(submodule\\s+status|worktree\\s+list)(\\s|$)"
+      - "^git\\s+(rev-parse|merge-base|rev-list|describe|ls-files|ls-tree|cat-file|blame|grep|shortlog|whatchanged|show-ref|for-each-ref|name-rev|count-objects|fsck|cherry)(\\s|$)"
       - "^\\.\\/gradlew\\s+(test|integrationTest|build|check|ktlintCheck|ktlintFormat|detekt|jacocoTestReport|clean|compileKotlin|compileTestKotlin|bootJar|jar|classes|testClasses)(\\s|$)"
       - "^\\.\\/gradlew\\s+.*--dry-run.*$"
       - "^cargo\\s+(test|build|check|clippy|fmt|doc)(\\s|$)"
@@ -61,6 +70,10 @@ toolsSettings:
       - "^printf(?:\\s+[^;&|<>`$\\n]*)?\\s*$"
       - "^(pwd|true|false|whoami|hostname|date|uname)(\\s|$)"
       - "^(which|type|command\\s+-v|basename|dirname|realpath)\\s+[^;&|<>`$\\n]+$"
+      - "^(df|du|ps|lsof|stat|file|readlink)\\s+[^;&|<>`$\\n]*$"
+      - "^(cat|head|tail|wc|sort|uniq|cut|tr|grep|rg)\\s+(?![^\\n]*(\\.ssh|\\.aws|\\.env|secrets|credentials|\\.gnupg|\\.pem|\\.p12|\\.pfx|\\.key|id_rsa|id_ed25519|shadow|\\.npmrc|\\.netrc|\\.bash_history|\\.zsh_history|\\.bashrc|\\.bash_profile|\\.zshrc|\\.profile|\\.gitconfig))[^;&|<>`$\\n]+$"
+
+      - "^ls(\\s+[^;&|<>`$\\n]*)?$"
       - "^yarn\\s+(test|build|lint|format|check)(\\s|$)"
       - "^pnpm\\s+(test|build|lint|format|check)(\\s|$)"
       - "^make\\s+(test|build|check|lint|format|clean)(\\s|$)"
@@ -70,6 +83,10 @@ toolsSettings:
       - "^ruff\\s+(check|format)(\\s|$)"
       - "^mvn\\s+(test|compile|package|verify|clean|install)(\\s|$)"
       - "^gradle\\s+(test|build|check|clean)(\\s|$)"
+      - "^/usr/(local/)?bin/git\\s+"
+      - "^/opt/homebrew/bin/git\\s+"
+      - "^/usr/(local/)?bin/(node|npm|npx|yarn|pnpm|cargo|rustc|go|python3?|java|javac|mvn|gradle|docker|kubectl|terraform)\\b"
+      - "^/opt/homebrew/bin/(node|npm|npx|yarn|pnpm|cargo|rustc|go|python3?|java|javac|mvn|gradle|docker|kubectl|terraform)\\b"
     denyByDefault: false
   grep_search:
     caseSensitive: false
@@ -87,6 +104,28 @@ toolsSettings:
       - "~/.ssh/**"
       - "~/.gnupg/**"
       - "~/.config/gnupg/**"
+  fs_read:
+    allowedPaths:
+      - "./**"
+      - "~/.kiro/**"
+    deniedPaths:
+      - "./.env"
+      - "./.env.*"
+      - "./**/.env"
+      - "./**/.env.*"
+      - "./secrets/**"
+      - "./credentials/**"
+      - "./**/secrets/**"
+      - "./**/credentials/**"
+      - "~/.ssh/**"
+      - "~/.aws/**"
+      - "~/.gnupg/**"
+      - "~/.config/gnupg/**"
+      - "~/.git-credentials"
+      - "**/*.pem"
+      - "**/*.key"
+      - "**/id_rsa"
+      - "**/id_ed25519"
   web_fetch:
     trusted:
       - ".*docs\\.kotlinlang\\.org.*"
@@ -142,6 +181,44 @@ permissions:
         - "git*cherry-pick*"
         - "git*rm*"
         - "git*mv*"
+        - "git*-C*config*--list*"
+        - "git*-C*config*--get*"
+        - "git*-C*remote*show*"
+        - "git*-C*tag*"
+        - "git*-C*merge-base*"
+        - "git*-C*rev-parse*"
+        - "git*-C*branch*"
+        - "git*-C*show*"
+        - "git*-C*log*"
+        - "git*-C*diff*"
+        - "git*-C*status*"
+        - "git*tag*--list*"
+        - "git*tag*-l*"
+        - "git*branch*--show-current*"
+        - "git*remote*get-url*"
+        - "git*remote*-v*"
+        - "git*remote*show*"
+        - "git*config*--list*"
+        - "git*config*--get*"
+        - "git*worktree*list*"
+        - "git*submodule*status*"
+        - "git*cherry*"
+        - "git*fsck*"
+        - "git*count-objects*"
+        - "git*name-rev*"
+        - "git*for-each-ref*"
+        - "git*show-ref*"
+        - "git*whatchanged*"
+        - "git*shortlog*"
+        - "git*grep*"
+        - "git*blame*"
+        - "git*cat-file*"
+        - "git*ls-tree*"
+        - "git*ls-files*"
+        - "git*describe*"
+        - "git*rev-list*"
+        - "git*merge-base*"
+        - "git*rev-parse*"
         - "./gradlew*test*"
         - "./gradlew*test"
         - "./gradlew*integrationTest*"
@@ -237,6 +314,15 @@ permissions:
         - "basename*"
         - "dirname*"
         - "realpath*"
+        - "uptime*"
+        - "readlink*"
+        - "file*"
+        - "stat*"
+        - "lsof*"
+        - "ps*"
+        - "du*"
+        - "df*"
+        - "ls*"
         - "yarn*test*"
         - "yarn*test"
         - "yarn*build*"
@@ -309,6 +395,30 @@ permissions:
         - "gradle*check"
         - "gradle*clean*"
         - "gradle*clean"
+        - "/usr*git*"
+        - "/opt*git*"
+        - "/usr*node*"
+        - "/usr*npm*"
+        - "/usr*npx*"
+        - "/usr*yarn*"
+        - "/usr*pnpm*"
+        - "/usr*cargo*"
+        - "/usr*python*"
+        - "/usr*java*"
+        - "/usr*mvn*"
+        - "/usr*gradle*"
+        - "/usr*docker*"
+        - "/opt*node*"
+        - "/opt*npm*"
+        - "/opt*npx*"
+        - "/opt*yarn*"
+        - "/opt*pnpm*"
+        - "/opt*cargo*"
+        - "/opt*python*"
+        - "/opt*java*"
+        - "/opt*mvn*"
+        - "/opt*gradle*"
+        - "/opt*docker*"
       effect: allow
     - capability: shell
       match:
@@ -601,6 +711,26 @@ permissions:
         - "*hasteb.in*"
       effect: ask
     - capability: fs_read
+      match:
+        - "./.env"
+        - "./.env.*"
+        - "./**/.env"
+        - "./**/.env.*"
+        - "./secrets/**"
+        - "./credentials/**"
+        - "./**/secrets/**"
+        - "./**/credentials/**"
+        - "~/.ssh/**"
+        - "~/.aws/**"
+        - "~/.gnupg/**"
+        - "~/.config/gnupg/**"
+        - "~/.git-credentials"
+        - "**/*.pem"
+        - "**/*.key"
+        - "**/id_rsa"
+        - "**/id_ed25519"
+      effect: ask
+    - capability: fs_read
       effect: allow
 ---
 
@@ -618,6 +748,11 @@ For every task, follow the **awesome-plan** skill:
 ## Rules
 
 - **Approval gate**: do not execute non-trivial work until the user replies `go`. Trivial one-liners and tasks where the user already gave a complete plan can skip this.
-- **Research before decisions**: every plan contains researched, decided choices with rejected alternatives named. Never defer decisions to execution.
-- **Verified tracking**: mark `- [x]` only when finished and verified; keep PLAN.md/TODO.md short, plain, and human-readable.
+- **Research before decisions**: every plan contains researched, decided choices with rejected alternatives named. Never defer decisions to execution. Do the research before asking — check code, docs, and web first, so you don't ask what you can find yourself.
+- **Challenge the idea**: don't blindly execute the ask. Push back respectfully on weak assumptions, risks, and tradeoffs, and if the plan would shift the original request (tradeoff, scope, approach), name the shift and get confirmation before proceeding.
+- **Verified tracking**: mark `- [x]` at the moment a task is finished and verified — update TODO.md as you go, not in a batch at the end; keep PLAN.md/TODO.md short, plain, and human-readable.
 - **Right epic or ask**: if no epic matches the task, ask before creating a new one.
+
+## Tool usage
+
+- `grep_search` requires a boolean `caseSensitive` argument — pass `false` or `true`, never strings like `"no"` or `"yes"`.

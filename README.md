@@ -77,6 +77,9 @@ runs after it.
 PLAN.md and TODO.md are plain Markdown a person can read in a normal editor or a PR. The
 agent is not the source of truth — the files are. This keeps a human "in the loop" without
 forcing them to read agent transcripts, and it makes the work reviewable after the fact.
+TODO.md is updated live: each item is marked `[x]` the moment it is finished and verified,
+so the visible checklist always reflects real progress instead of being rewritten all at
+once at the end.
 
 ### 3. Why a separate agent + skill instead of only slash commands
 The slash commands (`/todo` … `/go`) are for *you* to drive the agent interactively from
