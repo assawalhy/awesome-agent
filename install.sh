@@ -14,8 +14,14 @@ REGISTRY="${XDG_DATA_HOME:-$HOME/.local/share}/awesome-agent/registry.txt"
 PLUGIN_NAME="awesome-agent"
 
 # ---- harness config --------------------------------------------------------
-# harness_dirs <id> -> prints: <root> <cmd_dir> <agent_dir> <skill_root>
+# harness_dirs <id> <scope> -> prints: <root> <cmd_dir> <agent_dir> <skill_root>
 harness_dirs() {
+  local id="$1" scope="${2:-global}"
+  if [ "$id" = local ]; then local_dirs; return; fi
+  if [ "$scope" = local ]; then harness_dirs_local "$id"; else harness_dirs_global "$id"; fi
+}
+# user/global scope: every harness installs under $HOME
+harness_dirs_global() {
   case "$1" in
     opencode)  printf "%s command agents %s/skills\n" "$HOME/.config/opencode" "$HOME/.config/opencode" ;;
     claude)    printf "%s commands agents %s/skills\n" "$HOME/.claude" "$HOME/.claude" ;;
@@ -25,9 +31,38 @@ harness_dirs() {
     kiro)      printf "%s commands agents %s/skills\n" "$HOME/.kiro" "$HOME/.kiro" ;;
     kimi)      printf "%s commands agents %s/skills\n" "$HOME/.kimi-code" "$HOME/.kimi-code" ;;
     deepseek)  printf "%s commands agents %s/skills\n" "$HOME/.deepseek" "$HOME/.deepseek" ;;
-    cursor)    printf "%s commands agents %s/skills\n" "$PWD/.cursor" "$PWD/.cursor" ;;
-    local)     local_dirs ;;
+    cursor)    printf "%s commands agents %s/skills\n" "$HOME/.cursor" "$HOME/.cursor" ;;
     *)         echo "" ;;
+  esac
+}
+# project/local scope: only harnesses with a documented project-level directory
+harness_dirs_local() {
+  case "$1" in
+    opencode)  printf "%s command agents %s/skills\n" "$PWD/.opencode" "$PWD/.opencode" ;;
+    claude)    printf "%s commands agents %s/skills\n" "$PWD/.claude" "$PWD/.claude" ;;
+    cursor)    printf "%s commands agents %s/skills\n" "$PWD/.cursor" "$PWD/.cursor" ;;
+    pi)        printf "%s prompts agents %s/skills\n" "$PWD/.pi" "$PWD/.pi" ;;
+    kilo)      printf "%s commands agents %s/skills\n" "$PWD/.kilo" "$PWD/.kilo" ;;
+    kiro)      printf "%s commands agents %s/skills\n" "$PWD/.kiro" "$PWD/.kiro" ;;
+    *)         echo "" ;;
+  esac
+}
+# scopes a harness supports: "global local" (choice) or "global" (global-only)
+harness_scopes() {
+  case "$1" in
+    local)                            echo "local" ;;
+    opencode|claude|cursor|pi|kilo|kiro) echo "global local" ;;
+    *)                                echo "global" ;;
+  esac
+}
+# scope_supported <id> <scope> -> echoes 1 when supported
+scope_supported() { case " $(harness_scopes "$1") " in *" $2 "*) echo 1 ;; esac; }
+# project directory name for a harness (for the scope prompt)
+harness_localdir() {
+  case "$1" in
+    opencode) echo ".opencode" ;; claude) echo ".claude" ;; cursor) echo ".cursor" ;;
+    pi)       echo ".pi" ;;       kilo)   echo ".kilo" ;;   kiro)   echo ".kiro" ;;
+    *)        echo "" ;;
   esac
 }
 # mimic the harness detected in the current project folder, else default
@@ -44,11 +79,11 @@ local_dirs() {
   else printf "%s command agents %s/skills\n" "$PWD/.awesome-agent" "$PWD/.awesome-agent"; fi
 }
 harness_root() { local d; d="$(harness_dirs "$1")"; [ -z "$d" ] && echo "" || echo "${d%% *}"; }
-# map a manifest relpath to its absolute installed path for a given harness
+# map a manifest relpath to its absolute installed path for a harness+scope
 target_file() {
-  local h="$1" rp="$2" root_override="${3:-}"
+  local h="$1" scope="$2" rp="$3" root_override="${4:-}"
   local root cmd_dir agent_dir skill_root logical
-  read -r root cmd_dir agent_dir skill_root <<< "$(harness_dirs "$h")"
+  read -r root cmd_dir agent_dir skill_root <<< "$(harness_dirs "$h" "$scope")"
   [ -n "$root_override" ] && root="$root_override"
   logical="$rp"
   case "$rp" in
@@ -89,9 +124,18 @@ harness_label() {
     kiro)      echo "Kiro ($HOME/.kiro)" ;;
     kimi)      echo "Kimi Code ($HOME/.kimi-code)" ;;
     deepseek)  echo "DeepSeek harness ($HOME/.deepseek)" ;;
-    cursor)    echo "Cursor (project: $PWD/.cursor)" ;;
+    cursor)    echo "Cursor ($HOME/.cursor)" ;;
     local)     echo "Current project folder" ;;
     *)         echo "$1" ;;
+  esac
+}
+# short name for the scope prompt rows (no global paths)
+harness_short() {
+  case "$1" in
+    opencode) echo "OpenCode" ;; claude) echo "Claude Code" ;; codex) echo "Codex" ;;
+    pi) echo "Pi" ;; kilo) echo "Kilo Code" ;; kiro) echo "Kiro" ;; kimi) echo "Kimi Code" ;;
+    deepseek) echo "DeepSeek" ;; cursor) echo "Cursor" ;; local) echo "Current project" ;;
+    *) echo "$1" ;;
   esac
 }
 ALL_IDS=(opencode claude codex pi kilo kiro kimi deepseek cursor local)
@@ -157,13 +201,15 @@ multiselect() {
   local n=${#opts[@]} cursor=0 i
   local sel=()
   for ((i=0;i<n;i++)); do sel[i]=0; done
+  # MS_PRESELECT: space-separated indices to pre-check; MS_TITLE: header line
+  for i in ${MS_PRESELECT:-}; do [ "$i" -lt "$n" ] 2>/dev/null && sel[i]=1; done
   SELECTED_IDX=""
   tput civis
   stty -echo -icanon time 0 min 0 2>/dev/null || true
   trap 'stty echo icanon 2>/dev/null; tput cnorm; trap - RETURN' RETURN
   draw() {
     tput clear
-    echo "awesome-agent — select targets (space toggle, a=all, enter confirm):"
+    echo "${MS_TITLE:-awesome-agent — select targets} (space toggle, a=all, enter confirm):"
     echo
     for ((i=0;i<n;i++)); do
       if [ "$i" = "$cursor" ]; then printf " > "; else printf "   "; fi
@@ -198,12 +244,16 @@ multiselect() {
   SELECTED_IDX="${out# }"
 }
 
-# ---- registry (per-target set of installed relpaths) -----------------------
-registry_add() {           # registry_add <id> <root> <relpath>...
-  local id="$1" root="$2"; shift 2
+# ---- registry (per id:scope set of installed relpaths) ---------------------
+# Keys are "<id>:<scope>" so a harness can be installed both globally and in a
+# project without one clobbering the other. Bare legacy keys are migrated once.
+registry_key() { echo "$1:$2"; }
+registry_add() {           # registry_add <id> <scope> <root> <relpath>...
+  local id="$1" scope="$2" root="$3"; shift 3
+  local key; key="$(registry_key "$id" "$scope")"
   mkdir -p "$(dirname "$REGISTRY")"
   local line f
-  line="$(registry_get "$id")"
+  line="$(registry_get "$id" "$scope")"
   if [ -n "$line" ]; then
     [ -z "$root" ] && { root="${line#*|}"; root="${root%|*}"; }  # fall back to old root
     line="${line##*|}"                     # existing files portion
@@ -214,13 +264,33 @@ registry_add() {           # registry_add <id> <root> <relpath>...
     f="$(relpath_of "$f")"
     case "$seen" in *" $f "*) ;; *) files+=("$f"); seen="$seen$f "; esac
   done
-  grep -vF "$id|" "$REGISTRY" 2>/dev/null > "$REGISTRY.tmp" || : > "$REGISTRY.tmp"
-  echo "$id|$root|${files[*]}" >> "$REGISTRY.tmp"
+  grep -vF "$key|" "$REGISTRY" 2>/dev/null > "$REGISTRY.tmp" || : > "$REGISTRY.tmp"
+  echo "$key|$root|${files[*]}" >> "$REGISTRY.tmp"
   mv "$REGISTRY.tmp" "$REGISTRY"
 }
-registry_get() { grep -F "$1|" "$REGISTRY" 2>/dev/null | head -1; }
-registry_remove() { grep -vF "$1|" "$REGISTRY" 2>/dev/null > "$REGISTRY.tmp" || : > "$REGISTRY.tmp"; mv "$REGISTRY.tmp" "$REGISTRY"; }
+registry_get() { grep -F "$(registry_key "$1" "$2")|" "$REGISTRY" 2>/dev/null | head -1; }
+registry_remove() {
+  local key; key="$(registry_key "$1" "$2")"
+  grep -vF "$key|" "$REGISTRY" 2>/dev/null > "$REGISTRY.tmp" || : > "$REGISTRY.tmp"; mv "$REGISTRY.tmp" "$REGISTRY"
+}
 registry_list() { [ -f "$REGISTRY" ] && sed '/^$/d' "$REGISTRY"; }
+# Pre-scope registries keyed targets by bare id. Rewrite once: cursor/local were
+# project installs, everything else was global.
+migrate_registry() {
+  [ -f "$REGISTRY" ] || return 0
+  grep -q '^[a-z][a-z]*|' "$REGISTRY" 2>/dev/null || return 0
+  local tmp id root files scope
+  tmp="$(mktemp)"
+  while IFS='|' read -r id root files; do
+    [ -z "$id" ] && continue
+    if [ "${id#*:}" = "$id" ]; then          # bare legacy key: no scope yet
+      case "$id" in cursor|local) scope=local ;; *) scope=global ;; esac
+      id="$id:$scope"
+    fi
+    printf '%s|%s|%s\n' "$id" "$root" "$files" >> "$tmp"
+  done < "$REGISTRY"
+  mv "$tmp" "$REGISTRY"
+}
 
 # ---- opencode default_agent -------------------------------------------------
 # Installing into opencode also sets awesome-agent as the default agent
@@ -405,14 +475,14 @@ kiro_unset_default() {
 
 # ---- actions ---------------------------------------------------------------
 do_install() {
-  local id="$1" root cmd_dir agent_dir skill_root
-  read -r root cmd_dir agent_dir skill_root <<< "$(harness_dirs "$id")"
-  [ -z "$root" ] && { echo "! unknown target $id"; return 1; }
+  local id="$1" scope="$2" root cmd_dir agent_dir skill_root
+  read -r root cmd_dir agent_dir skill_root <<< "$(harness_dirs "$id" "$scope")"
+  [ -z "$root" ] && { echo "! unsupported target $id:$scope"; return 1; }
   local add=() rp src dest
   while IFS= read -r rp; do
     [ -z "$rp" ] && continue
     src="$(src_for "$id" "$rp")" || continue      # .skip excluded, or no source
-    dest="$(target_file "$id" "$rp" "$root")"
+    dest="$(target_file "$id" "$scope" "$rp" "$root")"
     [ -z "$dest" ] && continue                    # e.g. overlay for another harness
     mkdir -p "$(dirname "$dest")"
     cp "$SCRIPT_DIR/$src" "$dest"
@@ -420,16 +490,16 @@ do_install() {
   done < <(manifest_current)
   # prune legacy files installed here but later removed from the plugin
   local line f
-  line="$(registry_get "$id")"
+  line="$(registry_get "$id" "$scope")"
   if [ -n "$line" ]; then
     for f in ${line##*|}; do
       f="$(relpath_of "$f")"
-      [ -n "$(manifest_is_removed "$f")" ] && rm -f "$(target_file "$id" "$f" "$root")"
+      [ -n "$(manifest_is_removed "$f")" ] && rm -f "$(target_file "$id" "$scope" "$f" "$root")"
     done
   fi
-  registry_add "$id" "$root" "${add[@]}"
-  echo "  + $id -> $root (installed: $(printf '%s ' "${add[@]##*/}"))"
-  if [ "$id" = opencode ]; then
+  registry_add "$id" "$scope" "$root" "${add[@]}"
+  echo "  + $id:$scope -> $root (installed: $(printf '%s ' "${add[@]##*/}"))"
+  if [ "$id" = opencode ] && [ "$scope" = global ]; then
     opencode_set_default "$root"
   fi
   if [ "$id" = kiro ]; then
@@ -437,20 +507,20 @@ do_install() {
   fi
 }
 do_uninstall() {
-  local id="$1"
-  local line; line="$(registry_get "$id")"
-  [ -z "$line" ] && { echo "  - $id (not registered)"; return; }
+  local id="$1" scope="$2"
+  local line; line="$(registry_get "$id" "$scope")"
+  [ -z "$line" ] && { echo "  - $id:$scope (not registered)"; return; }
   local root="${line#*|}"; root="${root%|*}"
   local f removed=0 dest
   for f in ${line##*|}; do
     f="$(relpath_of "$f")"
-    dest="$(target_file "$id" "$f" "$root")"
+    dest="$(target_file "$id" "$scope" "$f" "$root")"
     [ -z "$dest" ] && continue
     if [ -f "$dest" ]; then rm -f "$dest"; removed=$((removed+1)); fi
   done
-  registry_remove "$id"
-  echo "  - $id (removed $removed file(s) from $root)"
-  if [ "$id" = opencode ]; then
+  registry_remove "$id" "$scope"
+  echo "  - $id:$scope (removed $removed file(s) from $root)"
+  if [ "$id" = opencode ] && [ "$scope" = global ]; then
     opencode_unset_default "$root"
   fi
   if [ "$id" = kiro ]; then
@@ -464,14 +534,23 @@ usage() {
 awesome-agent installer
 
 Usage:
-  $0                interactive install (detect harnesses, multi-select)
+  $0                interactive install (detect harnesses, pick targets + scope)
   $0 install        same as above
   $0 update         re-copy current files + prune removed ones (TUI to pick)
   $0 uninstall      remove from registered targets, incl. legacy files (TUI)
-  $0 --all          non-interactive: install into every detected harness
-  $0 --target a,b   install into listed ids
+  $0 --all          non-interactive: install global into every detected harness
+  $0 --scope S      scope for targets: global | local | both  (default global)
+  $0 --target a,b   install into listed ids, each optionally id:scope
                     (opencode,claude,codex,pi,kilo,kiro,kimi,deepseek,cursor,local)
   $0 --help         this message
+
+Scope: 'global' installs under \$HOME (the default); 'local' installs into the
+current project directory. Local scope is offered for opencode, claude, cursor,
+pi, kilo and kiro; codex, kimi and deepseek are global-only.
+
+Examples:
+  $0 --target claude:local,opencode    # claude in this project, opencode global
+  $0 --all --scope both                # both scopes where supported
 
 Files are tracked in MANIFEST.txt (rel_path|version_added|version_removed) so
 uninstall cleans up commands/skills even after they are removed from the plugin.
@@ -484,30 +563,86 @@ detected_ids() {
   done
   echo "${out[@]}"
 }
+# second-stage TUI: one "global"/"project" row per local-capable harness.
+# Fills SCOPE_PAIRS with "id scope"; no rows means nothing to ask.
+SCOPE_PAIRS=()
+scope_prompt() {
+  local id opts=() map=() i pre=""
+  for id in "$@"; do
+    [ "$id" = local ] && continue
+    [ -n "$(scope_supported "$id" local)" ] || continue
+    opts+=("$(harness_short "$id") — global ($(harness_root "$id"))")
+    map+=("$id global")
+    opts+=("$(harness_short "$id") — project ($PWD/$(harness_localdir "$id"))")
+    map+=("$id local")
+  done
+  SCOPE_PAIRS=()
+  [ ${#opts[@]} -eq 0 ] && return 0
+  for ((i=0;i<${#opts[@]};i++)); do
+    case "${map[i]}" in *" global") pre="$pre $i" ;; esac   # default: global
+  done
+  MS_TITLE="awesome-agent — install scope (select one row per harness; both = both)"
+  MS_PRESELECT="${pre# }"
+  multiselect "${opts[@]}"
+  MS_TITLE=""; MS_PRESELECT=""
+  [ -z "$SELECTED_IDX" ] && return 0
+  for i in $SELECTED_IDX; do SCOPE_PAIRS+=("${map[i]}"); done
+}
+# expand target specs into "id scope" pairs, honoring a default scope.
+# An explicit "id:scope" is passed through even when unsupported (do_install
+# rejects it); a default scope (--scope) falls back to global when unsupported.
+expand_spec() {
+  local ds="$1" spec id s explicit; shift
+  for spec in "$@"; do
+    case "$spec" in
+      *:*) id="${spec%%:*}"; s="${spec##*:}"; explicit=1 ;;
+      *)   id="$spec"; s="$ds"; explicit=0 ;;
+    esac
+    if [ "$id" = local ]; then echo "local local"; continue; fi
+    case "$s" in
+      both)
+        echo "$id global"
+        [ -n "$(scope_supported "$id" local)" ] && echo "$id local" ;;
+      local)
+        if [ "$explicit" = 1 ] || [ -n "$(scope_supported "$id" local)" ]; then
+          echo "$id local"
+        else
+          echo "$id global"          # --scope local: global-only harness stays global
+        fi ;;
+      *) echo "$id global" ;;
+    esac
+  done
+}
 
 main() {
-  local mode="install" targets_spec=""
+  local mode="install" targets_spec="" scope_spec=""
   while [ $# -gt 0 ]; do
     case "$1" in
       install|update|uninstall) mode="$1" ;;
       --all) targets_spec="ALL" ;;
       --target) targets_spec="$2"; shift ;;
+      --scope) scope_spec="$2"; shift ;;
       --help|-h) usage; exit 0 ;;
       *) echo "unknown arg: $1"; usage; exit 1 ;;
     esac
     shift
   done
 
+  migrate_registry
+
   local ids=() labels=()
   if [ "$mode" = "update" ] || [ "$mode" = "uninstall" ]; then
-    while IFS='|' read -r id dir files; do
-      [ -z "$id" ] && continue
-      ids+=("$id"); labels+=("$(harness_label "$id")  [$dir]")
+    while IFS='|' read -r key dir files; do
+      [ -z "$key" ] && continue
+      local id="${key%%:*}" scope="${key##*:}"
+      ids+=("$key"); labels+=("$(harness_label "$id")  [$scope: $dir]")
     done < <(registry_list)
     if [ ${#ids[@]} -eq 0 ]; then echo "No registered targets. Run '$0' to install first."; exit 1; fi
   else
     local d
-    for d in $(detected_ids); do ids+=("$d"); labels+=("$(harness_label "$d")"); done
+    for d in $(detected_ids); do
+      ids+=("$d"); labels+=("$(harness_label "$d")  [$(harness_scopes "$d" | tr ' ' '/')]")
+    done
     if [ ${#ids[@]} -eq 0 ]; then echo "No supported harnesses detected on this machine."; exit 1; fi
   fi
 
@@ -523,12 +658,43 @@ main() {
   fi
   [ ${#chosen[@]} -eq 0 ] && { echo "No targets selected."; exit 0; }
 
+  # resolve chosen targets to "id scope" pairs
+  local pairs=() t id matched ds p
+  if [ "$mode" = "update" ] || [ "$mode" = "uninstall" ]; then
+    for t in "${chosen[@]}"; do
+      case "$t" in *:*) pairs+=("${t%%:*} ${t##*:}") ;; *) pairs+=("$t global") ;; esac
+    done
+  elif [ -n "$scope_spec" ]; then
+    while IFS= read -r p; do pairs+=("$p"); done < <(expand_spec "$scope_spec" "${chosen[@]}")
+  elif [ -n "$targets_spec" ]; then
+    while IFS= read -r p; do pairs+=("$p"); done < <(expand_spec global "${chosen[@]}")
+  else
+    scope_prompt "${chosen[@]}"
+    for id in "${chosen[@]}"; do
+      if [ "$id" = local ]; then pairs+=("local local"); continue; fi
+      matched=""
+      for p in ${SCOPE_PAIRS[@]+"${SCOPE_PAIRS[@]}"}; do
+        [ "${p%% *}" = "$id" ] && { pairs+=("$p"); matched=1; }
+      done
+      ds="${scope_spec:-global}"
+      [ "$ds" = local ] && [ -z "$(scope_supported "$id" local)" ] && ds=global
+      [ -z "$matched" ] && pairs+=("$id $ds")
+    done
+  fi
+
+  # dedupe pairs, then install/update/uninstall
+  local uniq=() seen=" "
+  for p in ${pairs[@]+"${pairs[@]}"}; do
+    case "$seen" in *" $p "*) ;; *) uniq+=("$p"); seen="$seen$p " ;; esac
+  done
+  pairs=(${uniq[@]+"${uniq[@]}"})
+  [ ${#pairs[@]} -eq 0 ] && { echo "No targets selected."; exit 0; }
+
   echo "== awesome-agent: $mode =="
-  local t
-  for t in "${chosen[@]}"; do
+  for p in "${pairs[@]}"; do
     case "$mode" in
-      install|update)   do_install "$t" ;;
-      uninstall)        do_uninstall "$t" ;;
+      install|update)   do_install ${p} ;;
+      uninstall)        do_uninstall ${p} ;;
     esac
   done
   echo "Done."

@@ -5,7 +5,8 @@
 
 `awesome-agent` installs four slash commands, one custom agent, and three skills into any
 supported AI coding harness (OpenCode, Claude Code, Codex, Pi, Kilo, Kiro, Kimi,
-DeepSeek, Cursor, or your current project folder).
+DeepSeek, Cursor, or your current project folder) — **globally** (under your home
+directory) or **project-locally** (into the repo you run it from), your choice.
 
 ## The problem and the solution
 
@@ -47,22 +48,56 @@ Installing into OpenCode also sets `awesome-agent` as the default agent
 (`"default_agent": "awesome-agent"` in `~/.config/opencode/opencode.json`), so new
 sessions start with the plan-first workflow instead of opencode's built-in `build`.
 Uninstall restores your previous default, or removes the setting so opencode falls
-back to `build`.
+back to `build`. (Only for the global scope — project installs never touch your
+personal OpenCode config.)
 
 ## Install / update / uninstall
 
 ```bash
-./install.sh            # detect harnesses, multi-select targets (TUI)
-./install.sh --all      # every detected harness
+./install.sh            # detect harnesses, pick targets, then pick scope (TUI)
+./install.sh --all      # every detected harness, global scope
 ./install.sh --target opencode,claude
 ./install.sh update     # re-copy current files + prune removed ones
 ./install.sh uninstall  # remove from registered targets, including legacy files
 ```
 
+### Scope: global vs project
+
+Each install target has a **scope**:
+
+- `global` (default) — the harness's user directory under `$HOME`
+  (`~/.claude`, `~/.cursor`, `~/.config/opencode`, …).
+- `local` — the project directory of the repo you run `./install.sh` from
+  (`.claude/`, `.cursor/`, `.opencode/`, …), so the plugin travels with the repo.
+
+Interactively, after selecting harnesses you get a second prompt with a row per
+harness: pick `global`, `project`, or both. Non-interactively use `--scope`
+and/or a per-target `id:scope`:
+
+```bash
+./install.sh --target claude:local,opencode    # claude in this project, opencode global
+./install.sh --target claude:local,claude:global   # both
+./install.sh --all --scope both                # both scopes, where supported
+```
+
+Local scope is offered for **opencode, claude, cursor, pi, kilo and kiro** (their
+project directories are documented). **codex, kimi and deepseek are global-only** —
+`codex` custom prompts have no project directory, `kimi` has no user command
+directory, and `deepseek`'s layout is a thin third-party one; a local request for
+them falls back to global (an explicit `codex:local` is rejected). A harness can be
+installed in both scopes at once; they are tracked separately (`claude:global`,
+`claude:local`) and uninstall only the scope you pick.
+
+`cursor` now **defaults to global** (`~/.cursor`), like every other harness; project
+installs are opt-in with `--scope local` or `cursor:local`. (Earlier versions always
+installed cursor into `$PWD/.cursor`; those existing installs are registered as
+`cursor:local` and keep updating/uninstalling there until you explicitly install global.)
+
 Installing into OpenCode (`--target opencode`) also writes
 `"default_agent": "awesome-agent"` into `~/.config/opencode/opencode.json` (or
 `.jsonc`); uninstall restores the previous value (or removes the key) so the config
-stays valid and opencode falls back to its built-in default agent.
+stays valid and opencode falls back to its built-in default agent. This applies to
+the global scope only.
 
 ## Auto mode: let the skill own the gate, not the harness
 
@@ -202,12 +237,21 @@ improvements are proposed, never bundled into a feature change.
 
 The split canon and the Kotlin/Spring mechanics live in `skills/ddd/references/` and are
 loaded only when relevant, so the always-loaded `SKILL.md` stays cheap on every prompt.
+### 12. Scope is a user choice, not a per-harness accident
+Whether a harness's files are personal (`~/.claude`) or travel with a repo (`.claude/`) is a
+property of *how you work*, not of the tool — so every harness that documents a project
+directory gets the choice, defaulting to the old global behavior. Only harnesses with a real
+project directory are offered it (no made-up `.codex/`): a request for local scope on a
+global-only harness falls back to global rather than scattering files somewhere the harness
+never reads. The registry keys targets by `id:scope` so one harness can live in both places
+without uninstall ambiguity, and pre-scope registries migrate once (old `cursor`/`local`
+entries were project installs, everything else global).
 
 ## File layout
 
 ```
 awesome-agent/
-  install.sh            # detector + TUI + install/update/uninstall
+  install.sh            # detector + TUI + scope selection + install/update/uninstall
   VERSION               # plugin version
   MANIFEST.txt          # tracked files (added/removed versions)
   commands/             # slash commands: todo, continue, epic, go (shared base)
@@ -221,10 +265,17 @@ awesome-agent/
     pi/.skip                         # agents/awesome-agent.md (pi has no md agents)
 ```
 
+Install roots are resolved per harness *and scope*: global roots live under `$HOME`
+(`~/.claude`, `~/.cursor`, `~/.config/opencode`, `~/.pi/agent`, …), local roots are the
+project directories (`.claude/`, `.cursor/`, `.opencode/`, `.pi/`, `.kilo/`, `.kiro/`).
+
 ## Limitations
 
 - Verified directory mappings: opencode, claude, codex, pi, kilo, cursor. `kiro`, `kimi` and
   `deepseek` use best-effort layouts (their public docs are thin) — verify per harness.
+- Project-local scope exists only for opencode, claude, cursor, pi, kilo and kiro. Codex,
+  Kimi and DeepSeek are global-only (no documented project command/agent directory), and a
+  `--scope local` request for them installs globally instead.
 - Codex has no user-defined slash commands or file-based agents: commands install into
   `~/.codex/prompts/` (invoked as `/prompts:todo`, …), the agent file is skipped via
   `harnesses/codex/.skip`, and the skill installs into `~/.codex/skills/`.
