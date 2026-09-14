@@ -1,0 +1,3 @@
+# local-harness install output (./install.sh --target local)
+.claude/
+__pycache__/

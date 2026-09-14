@@ -3,7 +3,7 @@
 > Drop-in plugin that brings plan-first, human-supervisable, traceable, and parallel
 > agentic coding to many AI harnesses.
 
-`awesome-agent` installs four slash commands, one custom agent, and one skill into any
+`awesome-agent` installs four slash commands, one custom agent, and three skills into any
 supported AI coding harness (OpenCode, Claude Code, Codex, Pi, Kilo, Kiro, Kimi,
 DeepSeek, Cursor, or your current project folder).
 
@@ -38,6 +38,7 @@ DeepSeek, Cursor, or your current project folder).
 | `awesome-agent` | `agents/awesome-agent.md` | Plan-first agent you can delegate to |
 | `awesome-plan` | `skills/awesome-plan/SKILL.md` | The plan → approve → execute workflow the agent follows |
 | `pr-description` | `skills/pr-description/SKILL.md` | Write a PR description for the current branch — product or technical style |
+| `ddd` | `skills/ddd/SKILL.md` | Domain-Driven Design + Clean Architecture layering — detects the repo's own topology (CQRS split, command-only, unsplit, flat) and conforms to it |
 
 Plans and TODOs are stored under `.agents/plans/<NN>-<slug>/` (see your existing
 `~/.agents/AGENTS.md` convention), so the plugin slots into the workflow you already use.
@@ -62,6 +63,45 @@ Installing into OpenCode (`--target opencode`) also writes
 `"default_agent": "awesome-agent"` into `~/.config/opencode/opencode.json` (or
 `.jsonc`); uninstall restores the previous value (or removes the key) so the config
 stays valid and opencode falls back to its built-in default agent.
+
+## Auto mode: let the skill own the gate, not the harness
+
+Most harnesses ship a *plan mode* — a separate mode or agent that is allowed to read but
+not write, which you then manually switch out of to execute. `awesome-agent` deliberately
+does not use it. The `awesome-plan` skill already owns the whole
+**research → plan → approve → execute → track** loop, including the hard approval gate, so
+a harness-level mode switch adds a second gate that does the same job worse:
+
+- the mode boundary is not the *plan* boundary — you can exit plan mode with no plan
+  written, or be stuck in it with an approved plan you can't act on;
+- switching modes usually starts a fresh context, so the reasoning behind the plan is lost
+  exactly when execution needs it (this is the opencode Plan → Build friction the plugin
+  was written for);
+- the artifact disappears. A harness plan mode leaves you a transcript; `awesome-plan`
+  leaves `PLAN.md` + `TODO.md` on disk, reviewable in a PR.
+
+**So: run the harness wide open, and let the skill stop you.** One agent, one context,
+plans and executes; the gate is the `go` reply, and the record is the files.
+
+| Harness | How to run it |
+| --- | --- |
+| Claude Code | Auto mode (`shift+tab` to cycle, or `/config` → permission mode). Invoke `/awesome-plan`, `/epic`, or `/todo`; the skill gates execution, so auto-accept is safe. Don't use `/plan`. |
+| OpenCode | Install sets `default_agent: awesome-agent`, so new sessions already start plan-first. Stay on it — don't switch to `plan` or `build`. |
+| Cursor | Pick the `awesome-agent` agent, then Auto/Agent mode rather than Ask/Plan. |
+| Codex / Pi | No file-based agents: run the prompts (`/prompts:epic`, `/todo`, …) with approvals set to auto/full-access. The skill still gates the write phase. |
+| Kilo / Kiro / Kimi / DeepSeek | Select the `awesome-agent` agent (Kiro install also sets `chat.defaultAgent`) and use their autonomous/auto-approve mode, not a built-in plan mode. |
+
+If you'd rather not remember this per harness, put it in your global instructions —
+`~/.agents/AGENTS.md` or the harness's equivalent — so every agent picks it up:
+
+```markdown
+## Planning
+
+Run in auto mode. Don't use the harness's plan mode or a separate planning agent —
+the `awesome-plan` skill owns the plan → approve → execute gate. One agent plans and
+executes in one context; the approval gate is the user's `go` reply, and the record is
+`PLAN.md` + `TODO.md` under `.agents/plans/<NN>-<slug>/`.
+```
 
 ## Design rationale (why it works the way it does)
 
@@ -143,6 +183,26 @@ task. Several candidates → ask. No active epic fits → ask whether to create 
 prevents the plans directory from accumulating orphaned or mislabeled work, and keeps a human
 in control of epic boundaries.
 
+### 11. Skills detect the repo instead of imposing a canon
+The `ddd` skill was originally one employer-specific document that asserted every bounded
+context splits into `command/` + `query/` before anything else. Surveying real services
+showed four topologies in production — CQRS split, command-only, unsplit layered, and no
+contexts at all — two of them inside the *same* service. So the skill now leads with a
+detection step and treats the command/query split as an optional per-context overlay on
+top of the one real invariant, layering.
+
+That creates the harder problem the skill actually solves: **when does the repo's existing
+pattern win over the canon?** It sorts every difference into three buckets — *variation*
+(arbitrary choice, no correctness consequence → conform silently), *defect* (an invariant
+is broken → write new code correctly, name it once, don't refactor uninvited), and *typo*
+(just wrong → don't copy it forward). Two rules keep that decidable: frequency decides
+(a one-off is an accident, a service-wide deviation *is* that service's convention), and
+correctness of new code outranks local consistency, which outranks the document. Structural
+improvements are proposed, never bundled into a feature change.
+
+The split canon and the Kotlin/Spring mechanics live in `skills/ddd/references/` and are
+loaded only when relevant, so the always-loaded `SKILL.md` stays cheap on every prompt.
+
 ## File layout
 
 ```
@@ -152,7 +212,8 @@ awesome-agent/
   MANIFEST.txt          # tracked files (added/removed versions)
   commands/             # slash commands: todo, continue, epic, go (shared base)
   agents/               # awesome-agent (plan-first agent) — shared, opencode-native
-  skills/               # awesome-plan (the workflow skill), pr-description — shared base
+  skills/               # awesome-plan (the workflow skill), pr-description, ddd — shared base
+    ddd/                # SKILL.md + references/{cqrs,kotlin-spring}.md (loaded on demand)
   harnesses/            # per-harness overlays (files that differ per harness)
     claude/agents/awesome-agent.md   # tools: frontmatter variant for Claude Code
     cursor/agents/awesome-agent.md   # tools: frontmatter variant for Cursor
