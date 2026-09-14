@@ -16,6 +16,11 @@ Core loop: **research → plan → approve → execute → track**.
 - **Approval gate**: never execute a non-trivial plan before the user replies `go`.
   Feedback → refine the plan → ask again.
 - **Decided plans**: a plan shown for approval contains decisions, not open questions.
+- **Delegation tiers**: long-running items run in sub-agents, never in the
+  coordinator's own loop. Mechanical, spec-only work → the cheap `awesome-worker`
+  (fast model; it reports a terse result with minimal reasoning). Reasoning-heavy
+  work → a sub-agent on the parent-tier model. The coordinator validates every
+  returned result before ticking anything.
 - **Visual-first review**: approval summaries use show-me style visuals (trees,
   flows, diffs) over prose — the user should grasp the plan at a glance.
 
@@ -40,7 +45,10 @@ Core loop: **research → plan → approve → execute → track**.
    with: "Reply `go` to execute, or give feedback to refine." Then stop.
 5. **Execute on `go`.** Work top to bottom. Mark `[x]` only when verified
    (syntax + tests as applicable). Keep TODO.md current as scope evolves.
-6. **Parallelize independent items.** One git worktree + one scoped sub-agent
-   each; merge and clean up when done — only worktrees you created.
+6. **Parallelize independent items.** Give each its own git worktree + background
+   sub-agent — `awesome-worker` for mechanical specs, a same-tier sub-agent for
+   reasoning-heavy items. Validate worker results before ticking `- [x]`; merge
+   and clean up when done — only worktrees you created.
 7. **New effort → new session.** Create the next epic dir and delegate execution
-   to a fresh sub-agent; this session supervises and validates.
+   to a fresh same-tier sub-agent (it carries judgment, so not the worker); this
+   session supervises and validates.

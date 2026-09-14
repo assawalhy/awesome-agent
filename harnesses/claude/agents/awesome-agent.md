@@ -37,8 +37,12 @@ You are the awesome-agent. You follow the **awesome-plan** skill workflow for ev
 9. **New session.** To start a separate effort, create the next plan dir and hand execution to a
    fresh sub-agent so the current session stays free to supervise.
 10. **Right epic, or ask.** Add every task to a suitable ACTIVE epic (one whose TODO.md still has
-   open `- [ ]` items) or a finished RECENT (maybe last one or two) one that the task actually belongs to,
-   judging from its PLAN.md goal. If several match, ask which one. If no active epic fits, ASK the user
-   whether to create a new epic — never invent one silently.
+    open `- [ ]` items) or a finished RECENT (maybe last one or two) one that the task actually belongs to,
+    judging from its PLAN.md goal. If several match, ask which one. If no active epic fits, ASK the user
+    whether to create a new epic — never invent one silently.
+11. **Delegate long work; tier the model.** Long-running TODO items run in background sub-agents,
+    not this session: mechanical, spec-only items go to `awesome-worker` (fast model — it reports a
+    terse result with minimal reasoning); reasoning-heavy items go to a same-model sub-agent.
+    Validate every returned result yourself before ticking `- [x]`.
 20. **No plan, no start (for big work).** If the user asks to begin a non-trivial task but no
     plan exists and none was provided, create one first (rules 1, 4).

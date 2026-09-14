@@ -3,3 +3,4 @@
 # The agent file is skipped here; skills install normally.
 # Lines starting with # are comments. One shared relpath per line.
 agents/awesome-agent.md
+agents/awesome-worker.md

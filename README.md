@@ -3,7 +3,7 @@
 > Drop-in plugin that brings plan-first, human-supervisable, traceable, and parallel
 > agentic coding to many AI harnesses.
 
-`awesome-agent` installs four slash commands, one custom agent, and three skills into any
+`awesome-agent` installs four slash commands, two custom agents, and three skills into any
 supported AI coding harness (OpenCode, Claude Code, Codex, Pi, Kilo, Kiro, Kimi,
 DeepSeek, Cursor, or your current project folder) — **globally** (under your home
 directory) or **project-locally** (into the repo you run it from), your choice.
@@ -37,6 +37,7 @@ directory) or **project-locally** (into the repo you run it from), your choice.
 | `/epic` | `commands/epic.md` | Plan a big feature/epic (awesome-plan) then build |
 | `/go` | `commands/go.md` | Auto-execute the active plan; manual fallback if none |
 | `awesome-agent` | `agents/awesome-agent.md` | Plan-first agent you can delegate to |
+| `awesome-worker` | `agents/awesome-worker.md` | Cheap-model sub-agent: executes a given spec, reports a terse verified result |
 | `awesome-plan` | `skills/awesome-plan/SKILL.md` | The plan → approve → execute workflow the agent follows |
 | `pr-description` | `skills/pr-description/SKILL.md` | Write a PR description for the current branch — product or technical style |
 | `ddd` | `skills/ddd/SKILL.md` | Domain-Driven Design + Clean Architecture layering — detects the repo's own topology (CQRS split, command-only, unsplit, flat) and conforms to it |
@@ -247,6 +248,16 @@ never reads. The registry keys targets by `id:scope` so one harness can live in 
 without uninstall ambiguity, and pre-scope registries migrate once (old `cursor`/`local`
 entries were project installs, everything else global).
 
+### 13. Long work is delegated, and the model matches the work
+A long-running TODO item grinds the coordinator's context and blocks supervision, so it goes
+to a background sub-agent instead — and the sub-agent's model is chosen by reasoning weight:
+mechanical, spec-following items that only need to report a result go to `awesome-worker` on a
+fast/cheap model, while reasoning-heavy items keep the parent's own (heavy) model. Cursor's
+worker ships as `model: fast`, Claude's as `model: haiku` (harness keywords, not hardcoded
+provider models); in OpenCode the Task tool can't pick a model per call, so the worker file
+carries a commented `model:` line — uncomment it with any cheap `provider/model` you have.
+The coordinator always validates a worker's result before ticking `- [x]`.
+
 ## File layout
 
 ```
@@ -255,14 +266,16 @@ awesome-agent/
   VERSION               # plugin version
   MANIFEST.txt          # tracked files (added/removed versions)
   commands/             # slash commands: todo, continue, epic, go (shared base)
-  agents/               # awesome-agent (plan-first agent) — shared, opencode-native
+  agents/               # awesome-agent (plan-first) + awesome-worker (cheap executor) — shared, opencode-native
   skills/               # awesome-plan (the workflow skill), pr-description, ddd — shared base
     ddd/                # SKILL.md + references/{cqrs,kotlin-spring}.md (loaded on demand)
   harnesses/            # per-harness overlays (files that differ per harness)
     claude/agents/awesome-agent.md   # tools: frontmatter variant for Claude Code
+    claude/agents/awesome-worker.md  # model: haiku worker
     cursor/agents/awesome-agent.md   # tools: frontmatter variant for Cursor
-    codex/.skip                      # agents/awesome-agent.md (codex has no md agents)
-    pi/.skip                         # agents/awesome-agent.md (pi has no md agents)
+    cursor/agents/awesome-worker.md  # model: fast worker
+    codex/.skip                      # agent files (codex has no md agents)
+    pi/.skip                         # agent files (pi has no md agents)
 ```
 
 Install roots are resolved per harness *and scope*: global roots live under `$HOME`
@@ -284,5 +297,8 @@ project directories (`.claude/`, `.cursor/`, `.opencode/`, `.pi/`, `.kilo/`, `.k
   via `harnesses/pi/.skip`, and the skill installs into `~/.pi/agent/skills/`. Pi's layout is
   evolving fast (v0.84.x); these are its documented stable globals.
 - Claude/Cursor agents are rendered with their `tools:`-list frontmatter; the body is shared.
+  The Cursor worker pins `model: fast` and the Claude worker `model: haiku` — harness-level
+  keywords whose concrete model you control in each tool's own settings. Elsewhere (opencode,
+  kilo, …) the worker inherits the parent model until you uncomment its `model:` line.
 - `grill-me` has `disable-model-invocation`, so `/epic` uses awesome-plan's built-in interview
   (self-contained) instead of auto-triggering the external skill.

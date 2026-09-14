@@ -29,3 +29,6 @@ Non-negotiables from the skill:
 - **Verified tracking**: mark `- [x]` at the moment a task is finished and
   verified — update TODO.md as you go, not in a batch at the end; keep
   PLAN.md/TODO.md short, plain, and human-readable.
+- **Tiered delegation**: run long-running items in sub-agents, not your own
+  loop — the cheap `awesome-worker` for mechanical specs, a same-model
+  sub-agent for heavy reasoning; validate worker results before ticking items.
