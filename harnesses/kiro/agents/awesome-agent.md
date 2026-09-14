@@ -71,7 +71,9 @@ toolsSettings:
       - "^(pwd|true|false|whoami|hostname|date|uname)(\\s|$)"
       - "^(which|type|command\\s+-v|basename|dirname|realpath)\\s+[^;&|<>`$\\n]+$"
       - "^(df|du|ps|lsof|stat|file|readlink)\\s+[^;&|<>`$\\n]*$"
-      - "^(cat|head|tail|wc|sort|uniq|cut|tr|grep|rg)\\s+(?![^\\n]*(\\.ssh|\\.aws|\\.env|secrets|credentials|\\.gnupg|\\.pem|\\.p12|\\.pfx|\\.key|id_rsa|id_ed25519|shadow|\\.npmrc|\\.netrc|\\.bash_history|\\.zsh_history|\\.bashrc|\\.bash_profile|\\.zshrc|\\.profile|\\.gitconfig))[^;&|<>`$\\n]+$"
+      - "^(cat|head|tail|wc|sort|uniq|cut|tr|grep|rg)(?:\\s+(?![^\\n]*(\\.ssh|\\.aws|\\.env|secrets|credentials|\\.gnupg|\\.pem|\\.p12|\\.pfx|\\.key|id_rsa|id_ed25519|shadow|\\.npmrc|\\.netrc|\\.bash_history|\\.zsh_history|\\.bashrc|\\.bash_profile|\\.zshrc|\\.profile|\\.gitconfig))[^;&|<>`$\\n]+)?$"
+      - "^(cat|head|tail|wc|sort|uniq|cut|tr|grep|rg)\\s+(?=(?:\\S+\\s+)*(?:helm|helmfile|helm-gcp|charts|deploy|k8s|kustomize|infra|overlays|clusters|config)/)(?!.*\\.\\.)(?![^\\n]*(\\.ssh|\\.aws|\\.gnupg|\\.pem|\\.p12|\\.pfx|\\.key|id_rsa|id_ed25519|shadow|\\.bash_history|\\.zsh_history|\\.bashrc|\\.bash_profile|\\.zshrc|\\.profile|\\.gitconfig|\\.npmrc|\\.netrc|\\.env))[^;&|<>`$\\n]+$"
+      - "^sops(?:\\s+(?!-d(?:\\s|$))(?!--decrypt(?:\\s|$))(?!-di(?:\\s|$))(?![^\\n]*\\s-d(?:\\s|$))(?![^\\n]*\\s--decrypt(?:\\s|$))(?![^\\n]*\\s-di(?:\\s|$))(?![^\\n]*(\\.ssh|\\.aws|\\.gnupg|\\.pem|\\.p12|\\.pfx|\\.key|id_rsa|id_ed25519|shadow|\\.bash_history|\\.zsh_history|\\.bashrc|\\.bash_profile|\\.zshrc|\\.profile|\\.gitconfig|\\.npmrc|\\.netrc|\\.env))[^;&|<>`$\\n]+)?$"
 
       - "^ls(\\s+[^;&|<>`$\\n]*)?$"
       - "^yarn\\s+(test|build|lint|format|check)(\\s|$)"
