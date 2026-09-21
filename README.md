@@ -153,9 +153,10 @@ runs after it.
 PLAN.md and TODO.md are plain Markdown a person can read in a normal editor or a PR. The
 agent is not the source of truth — the files are. This keeps a human "in the loop" without
 forcing them to read agent transcripts, and it makes the work reviewable after the fact.
-TODO.md is updated live: each item is marked `[x]` the moment it is finished and verified,
-so the visible checklist always reflects real progress instead of being rewritten all at
-once at the end.
+TODO.md is updated live: each item is marked `[x]` as soon as it is done on a minimal check
+(it exists, runs, no syntax error), so the visible checklist reflects real progress instead
+of being rewritten all at once at the end. Full tests and build run once, in a final
+verification step.
 
 ### 3. Why a separate agent + skill instead of only slash commands
 The slash commands (`/todo` … `/go`) are for *you* to drive the agent interactively from
@@ -164,12 +165,13 @@ runs the same workflow autonomously. Splitting the workflow into the `awesome-pl
 means the rules live in one place and are shared by both the slash commands (via `/epic`)
 and the agent, so they cannot drift apart.
 
-### 4. Worktree orchestration
-Independent TODO items are executed on separate git worktrees, each driven by its own
-sub-agent. Rationale: parallel agents sharing one working tree step on each other (file
-conflicts, half-written states). Worktrees give isolation + a clean merge boundary, so
-failures stay contained and the main tree is never left broken. Merging happens only after
-every sub-agent reports done.
+### 4. Same-tree parallel sub-agents
+Independent TODO items run as background sub-agents in the one working tree — no worktrees,
+no branches. They all read the same PLAN.md and share the local TODO.md. Rationale: the plan
+and its checklist stay the single source of truth in one place, so there is no branch
+bookkeeping and nothing to merge back. The cost is isolation — so the coordinator partitions
+items into disjoint files to keep parallel edits from colliding, and is the only writer of
+`[x]` so TODO.md is not raced.
 
 ### 5. New-session delegation
 Execution is handed to a fresh sub-agent so the supervising session stays free to review,

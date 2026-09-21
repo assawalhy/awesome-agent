@@ -19,8 +19,9 @@ Core loop: **research → plan → approve → execute → track**.
 - **Delegation tiers**: long-running items run in sub-agents, never in the
   coordinator's own loop. Mechanical, spec-only work → the cheap `awesome-worker`
   (fast model; it reports a terse result with minimal reasoning). Reasoning-heavy
-  work → a sub-agent on the parent-tier model. The coordinator validates every
-  returned result before ticking anything.
+  work → a sub-agent on the parent-tier model. Parallel sub-agents share the one
+  working tree and TODO.md — partition by disjoint files. The coordinator
+  validates every returned result before ticking anything.
 - **Visual-first review**: approval summaries use show-me style visuals (trees,
   flows, diffs) over prose — the user should grasp the plan at a glance.
 - **Challenge the idea**: don't silently accept the request. Push back
@@ -55,14 +56,23 @@ Core loop: **research → plan → approve → execute → track**.
    scope, a mermaid or flow sketch for the approach, a diff-shaped sketch when
    changing existing structures, one line per decision with its rationale. End
    with: "Reply `go` to execute, or give feedback to refine." Then stop.
-5. **Execute on `go`.** Work top to bottom. Mark `[x]` only when verified
-   (syntax + tests as applicable). Update TODO.md as you go — mark each item
-   `[x]` the moment it's finished and verified; never batch the status update
-   at the end. Keep TODO.md current as scope evolves.
-6. **Parallelize independent items.** Give each its own git worktree + background
-   sub-agent — `awesome-worker` for mechanical specs, a same-tier sub-agent for
-   reasoning-heavy items. Validate worker results before ticking `- [x]`; merge
-   and clean up when done — only worktrees you created.
-7. **New effort → new session.** Create the next epic dir and delegate execution
+5. **Execute on `go`.** Work top to bottom. Give each item only a minimal check
+   (it exists, runs, no syntax error) and mark `[x]` right away — update TODO.md
+   as you go, never batch status at the end. Leave the full tests, build, and
+   similar checks for the final verification step. Keep TODO.md current as scope
+   evolves. Write the smallest change that works — reuse what exists, prefer the
+   standard library and native features over new code or dependencies, skip
+   unrequested abstractions — and keep the prose terse: code first, no filler,
+   say only what's needed.
+6. **Parallelize independent items.** Run them as background sub-agents in the
+   same working tree — no worktrees, no branches. All read the same PLAN.md and
+   share the local TODO.md. Split items across disjoint files so edits don't
+   collide, and let the coordinator own the `[x]` ticks so TODO.md isn't written
+   concurrently. `awesome-worker` for mechanical specs, a same-tier sub-agent for
+   reasoning-heavy items; validate each result before ticking it.
+7. **Verify at the end.** Once every item is done, run the project's real checks
+   — tests, build, typecheck, lint as applicable — as their own step; fix and
+   re-run until green.
+8. **New effort → new session.** Create the next epic dir and delegate execution
    to a fresh same-tier sub-agent (it carries judgment, so not the worker); this
    session supervises and validates.

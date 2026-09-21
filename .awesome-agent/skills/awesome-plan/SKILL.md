@@ -50,11 +50,20 @@ Core loop: **research → plan → approve → execute → track**.
    scope, a mermaid or flow sketch for the approach, a diff-shaped sketch when
    changing existing structures, one line per decision with its rationale. End
    with: "Reply `go` to execute, or give feedback to refine." Then stop.
-5. **Execute on `go`.** Work top to bottom. Mark `[x]` only when verified
-   (syntax + tests as applicable). Update TODO.md as you go — mark each item
-   `[x]` the moment it's finished and verified; never batch the status update
-   at the end. Keep TODO.md current as scope evolves.
-6. **Parallelize independent items.** One git worktree + one scoped sub-agent
-   each; merge and clean up when done — only worktrees you created.
-7. **New effort → new session.** Create the next epic dir and delegate execution
+5. **Execute on `go`.** Work top to bottom. Give each item only a minimal check
+   (it exists, runs, no syntax error) and mark `[x]` right away — update TODO.md
+   as you go, never batch status at the end. Leave the full tests, build, and
+   similar checks for the final verification step. Keep TODO.md current as scope
+   evolves. Write the smallest change that works — reuse what exists, prefer the
+   standard library and native features over new code or dependencies, skip
+   unrequested abstractions — and keep the prose terse: code first, no filler,
+   say only what's needed.
+6. **Parallelize independent items.** Run them as background sub-agents in the
+   same working tree — no worktrees, no branches. All read the same PLAN.md and
+   share the local TODO.md; split items across disjoint files and let the
+   coordinator own the `[x]` ticks.
+7. **Verify at the end.** Once every item is done, run the project's real checks
+   — tests, build, typecheck, lint as applicable — as their own step; fix and
+   re-run until green.
+8. **New effort → new session.** Create the next epic dir and delegate execution
    to a fresh sub-agent; this session supervises and validates.

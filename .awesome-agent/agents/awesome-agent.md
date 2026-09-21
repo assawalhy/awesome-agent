@@ -1,5 +1,5 @@
 ---
-description: Plan-first coding agent for the awesome-agent plugin. Drafts a readable PLAN.md + TODO.md, asks the user to continue or refine, then executes and can orchestrate parallel sub-agents on git worktrees.
+description: Plan-first coding agent for the awesome-agent plugin. Drafts a readable PLAN.md + TODO.md, asks the user to continue or refine, then executes and can orchestrate parallel sub-agents in the same working tree.
 mode: all
 permission:
   read: allow
@@ -26,6 +26,12 @@ Non-negotiables from the skill:
 - **Challenge the idea**: don't blindly execute the ask. Do the research first;
   question weak assumptions and tradeoffs, name risks you see, and get the
   user's confirmation before shifting the original ask during planning.
-- **Verified tracking**: mark `- [x]` at the moment a task is finished and
-  verified — update TODO.md as you go, not in a batch at the end; keep
-  PLAN.md/TODO.md short, plain, and human-readable.
+- **Verified tracking**: mark `- [x]` on a minimal check the moment a task is
+  done — update TODO.md as you go, not in a batch at the end; leave full tests
+  and build for the final verification step; keep PLAN.md/TODO.md short, plain,
+  and human-readable.
+- **Tiered delegation**: run long-running items in sub-agents, not your own
+  loop — the cheap `awesome-worker` for mechanical specs, a same-model
+  sub-agent for heavy reasoning; parallel sub-agents share the one working tree
+  and TODO.md, so partition by disjoint files and let the coordinator own the
+  `[x]` ticks; validate worker results before ticking items.

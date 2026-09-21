@@ -21,3 +21,21 @@
       nothing; uninstall removes it.
 - [x] M3: `./install.sh update` for all registered targets; verify `~/.cursor`,
       `~/.claude`, `~/.config/opencode` … contain awesome-worker.md.
+
+## Revision — execution model (post-0.6.0)
+
+- [x] `skills/awesome-plan/SKILL.md`: step 5 marks `[x]` on a minimal per-item check
+      and defers tests/build; new step 7 "Verify at the end"; step 6 parallelizes as
+      sub-agents in the same working tree (no worktrees), sharing PLAN.md/TODO.md,
+      partitioned by disjoint files with the coordinator owning the ticks; Concepts
+      "Delegation tiers" notes the shared tree.
+- [x] Propagate: `agents/awesome-agent.md` (verified tracking + tiered delegation,
+      description), `harnesses/{claude,cursor}/agents/awesome-agent.md` (rules 7-9,
+      description), `harnesses/kiro/agents/awesome-agent.{md,json}` (description +
+      How-you-work verify step + verified tracking).
+- [x] README: replace the worktree-orchestration rationale with same-tree parallel
+      sub-agents; adjust the live-TODO "verified" wording.
+- [x] Refresh `.awesome-agent/` mirror for the changed skill + agent.
+- [x] `./install.sh update --all`; verify installed targets carry the new wording and
+      no workflow text still prescribes git worktrees (kiro's read-only `git worktree
+      list` permission regex is unrelated and stays).
