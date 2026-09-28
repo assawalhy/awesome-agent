@@ -1,4 +1,5 @@
 # local-harness install output (./install.sh --target local)
+.awesome-agent/
 .claude/
 .cursor/
 __pycache__/
