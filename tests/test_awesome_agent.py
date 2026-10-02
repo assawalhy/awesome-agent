@@ -324,6 +324,34 @@ class TestStructure(unittest.TestCase):
                 self.assertEqual(source.read_text(), mirror.read_text(),
                                  f"installer copy drifted from source: {rel}")
 
+    def test_update_prunes_files_removed_from_manifest(self):
+        """A dropped file must disappear from an existing install on update.
+
+        `commands/continue.md` is the live example: MANIFEST marks it removed at
+        0.7.0, so `update` must delete the copy an older version installed.
+        """
+        manifest = repo_path("MANIFEST.txt").read_text()
+        entry = next(l for l in manifest.splitlines() if l.startswith("commands/continue.md|"))
+        self.assertNotEqual(entry.rsplit("|", 1)[1], "-",
+                            "commands/continue.md is live again: update or drop this test")
+        with tempfile.TemporaryDirectory() as tmp:
+            home = pathlib.Path(tmp, "home")
+            xdg = pathlib.Path(tmp, "xdg")
+            legacy = home / ".config" / "opencode" / "command" / "continue.md"
+            legacy.parent.mkdir(parents=True)
+            legacy.write_text("# /continue\n")
+            registry = xdg / "awesome-agent" / "registry.txt"
+            registry.parent.mkdir(parents=True)
+            registry.write_text(
+                f"opencode:global|{home}/.config/opencode|commands/continue.md\n")
+            env = dict(os.environ, HOME=str(home), XDG_DATA_HOME=str(xdg))
+            res = subprocess.run(
+                [str(repo_path("install.sh")), "update", "--target", "opencode:global"],
+                cwd=tmp, env=env, capture_output=True, text=True,
+            )
+            self.assertEqual(res.returncode, 0, res.stderr or res.stdout)
+            self.assertFalse(legacy.exists(), "update left a removed file behind")
+
     def test_installed_kiro_copy_matches_source(self):
         """Catches the 'edited source but forgot ./install.sh' regression."""
         home = pathlib.Path.home()

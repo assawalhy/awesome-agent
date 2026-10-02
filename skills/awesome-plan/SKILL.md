@@ -35,9 +35,10 @@ Core loop: **research → plan → approve → execute → track**.
 
 ## Workflow
 
-1. **Place the task.** Add it to the active epic whose goal it matches. Several
-   match → ask which. None fits → ask before creating a new epic. Never invent
-   one silently.
+1. **Place the task.** Add it to the active epic whose goal it matches. If the
+   message only asks to continue, resume the active epic (the one with open
+   items) instead of adding a task. Several match → ask which. None fits → ask
+   before creating a new epic. Never invent one silently.
 2. **Research before deciding.** Resolve non-obvious questions from code, docs,
    web, and prior epics *before* writing the plan. Research, don't ask: check
    the codebase and docs yourself first; challenge the idea with what you find

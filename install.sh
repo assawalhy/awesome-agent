@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # awesome-agent installer — "oh my openagent"
-# Drop-in slash commands (/todo /continue /epic /go) for many AI coding harnesses.
+# Drop-in slash commands (/todo /epic /go) for many AI coding harnesses.
 # Detects installed harnesses, multi-selects targets, and installs / updates /
 # uninstalls. Tracks every file (including removed ones) via MANIFEST.txt so
 # uninstall cleans up legacy files no longer in the repo.

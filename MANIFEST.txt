@@ -12,7 +12,7 @@
 # entries below are the only installable paths.
 
 commands/todo.md|0.1.0|-
-commands/continue.md|0.1.0|-
+commands/continue.md|0.1.0|0.7.0
 commands/epic.md|0.1.0|-
 commands/go.md|0.1.0|-
 agents/awesome-agent.md|0.1.0|-
