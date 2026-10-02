@@ -31,8 +31,11 @@ NOTE on matching semantics (mirrors Kiro's "allow by pattern" model):
 """
 
 import json
+import os
 import pathlib
 import re
+import subprocess
+import tempfile
 import unittest
 
 REPO = pathlib.Path(__file__).resolve().parents[1]
@@ -298,14 +301,28 @@ class TestStructure(unittest.TestCase):
         self.assertEqual({token(g) for g in ask[0]["match"]}, {token(r) for r in self.cfg.web_blocked})
         self.assertEqual({token(r) for r in self.cfg.md_web_blocked}, {token(r) for r in self.cfg.web_blocked})
 
-    # -- shipped mirrors && installed targets --------------------------------
-    def test_awesome_agent_mirror_is_synced(self):
-        for rel in ("agents/awesome-agent.md", "skills/awesome-plan/SKILL.md"):
-            source = repo_path(rel)
-            mirror = repo_path(".awesome-agent", rel)
-            self.assertTrue(source.exists(), f"missing source {rel}")
-            self.assertTrue(mirror.exists(), f"missing mirror .awesome-agent/{rel}")
-            self.assertEqual(source.read_text(), mirror.read_text(), f"mirror drift: .awesome-agent/{rel}")
+    # -- installer output && installed targets -------------------------------
+    def test_local_install_mirrors_current_sources(self):
+        """`install.sh --target local` must copy the current shared sources.
+
+        The installer runs in a throwaway dir with an isolated XDG_DATA_HOME,
+        so the check holds on a fresh clone (CI) and never touches the
+        developer's own local install or registry.
+        """
+        with tempfile.TemporaryDirectory() as tmp:
+            env = dict(os.environ, XDG_DATA_HOME=tmp)
+            res = subprocess.run(
+                [str(repo_path("install.sh")), "--target", "local"],
+                cwd=tmp, env=env, capture_output=True, text=True,
+            )
+            self.assertEqual(res.returncode, 0, res.stderr or res.stdout)
+            for rel in ("agents/awesome-agent.md", "skills/awesome-plan/SKILL.md"):
+                source = repo_path(rel)
+                mirror = pathlib.Path(tmp, ".awesome-agent", rel)
+                self.assertTrue(source.exists(), f"missing source {rel}")
+                self.assertTrue(mirror.exists(), f"installer did not produce .awesome-agent/{rel}")
+                self.assertEqual(source.read_text(), mirror.read_text(),
+                                 f"installer copy drifted from source: {rel}")
 
     def test_installed_kiro_copy_matches_source(self):
         """Catches the 'edited source but forgot ./install.sh' regression."""
