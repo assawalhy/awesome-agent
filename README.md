@@ -29,6 +29,17 @@ Restart your harness, then start with `/epic`, `/todo` or `/go`. Non-interactive
 ./install.sh --help                  # every target and flag
 ```
 
+> [!TIP]
+> **Long builds and test suites? Queue them.**
+> [ajq](https://github.com/assawalhy/agents-jobs-queue) is a jobs-queue daemon
+> for heavy agent tasks: it caps concurrency, memory and timeouts, so a twenty
+> minute build never blocks a turn or OOMs the box. It installs its own skill
+> and hooks into the same harnesses, needs `python3` 3.11+, Linux and macOS.
+>
+> ```bash
+> curl -fsSL https://raw.githubusercontent.com/assawalhy/agents-jobs-queue/main/install.sh | bash
+> ```
+
 ## 🔁 The loop
 
 ```mermaid
