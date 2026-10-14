@@ -9,6 +9,32 @@ thread. awesome-agent fixes the loop: one agent plans and executes, a hard gate
 holds it until you reply `go`, and every decision lands in markdown you can
 review in the PR.
 
+## 🧯 What goes wrong
+
+| What goes wrong | What this does about it |
+| --- | --- |
+| You come back after an hour and can't tell which agent is doing what | One folder per goal: `.agents/plans/<NN>-<slug>/` with a `PLAN.md` and a `TODO.md`, so every piece of work has an address you can look up |
+| Progress lives in a transcript that scrolled away | `- [x]` is written the instant an item lands, so the checklist is the progress bar, not a memory test |
+| Picking work back up means re-explaining everything | Tell the agent to continue: it reads the active plan and `TODO.md` and picks up from there |
+| A second agent can't be handed the work | The plan is on disk, not in someone's head, so any session, any harness, any model resumes from the same files |
+| "Why did we do it this way?" is answered by vibes | `PLAN.md` keeps Goal, Approach, Decisions (with the alternative that lost), Milestones and Risks, committed with the code |
+| The agent sometimes skips straight to writing code | A hard gate: no non-trivial execution before you reply `go` |
+| Switching a harness's plan agent to its build agent is a fight, and the context dies | One agent, one context. The skill owns the gate; the harness runs wide open |
+| The plan itself is a puzzle to read | Approval summaries are visual: a file tree for scope, a flow for the approach, one line per decision |
+| Five parallel agents run five heavy builds and your laptop freezes | Work is tiered by reasoning weight: mechanical items go to a cheap model in a sub-agent, and tests and build run once, at the end |
+
+What it comes down to:
+
+- **One gate instead of a mode switch.** The same agent plans and executes, so
+  the reasoning survives; nothing is re-decided by a fresh agent that never saw
+  the research.
+- **Progress you can see.** `- [x]` is written the moment an item passes a
+  minimal check, not batched at the end of a run.
+- **A record, not a transcript.** Goals, decisions and rejected alternatives
+  are committed markdown, reviewable long after the session is gone.
+- **Every harness, one install.** The commands, agents and skills land in
+  whichever coding harness you already use, globally or inside a single project.
+
 ## 🚀 Install
 
 The installer detects your harnesses (OpenCode, Claude Code, Cursor, Kiro,
@@ -53,6 +79,36 @@ flowchart TD
   F --> G["heavy items go to sub-agents"]
   G --> H["verify once: tests, build"]
   H --> A
+```
+
+What one run looks like:
+
+```
+$ /epic add a rate limiter to the /login route
+
+  Goal         5 req/min per IP on /login, 429 + Retry-After
+  Approach     token bucket in Redis (already a dep for the session store)
+  Decisions    Redis over in-process: 3 instances sit behind the LB
+               rejected: in-process (resets on every deploy),
+                         nginx limit_req (can't set Retry-After per client)
+  Milestones   bucket → middleware → config → tests
+  Risks        cache outage: fail open and log, or fail closed?
+
+  .agents/plans/04-rate-limit-login/
+  ├── PLAN.md
+  └── TODO.md
+      - [ ] RedisBucket behind a RateLimiter interface
+      - [ ] middleware sets 429 + Retry-After
+      - [ ] config flag with defaults
+      - [ ] tests: allow, 429, refill
+
+  Reply `go` to execute, or give feedback to refine.
+
+$ go
+
+  - [x] RedisBucket behind a RateLimiter interface
+  - [ ] middleware sets 429 + Retry-After
+      ...the checklist moves while it works, then the full suite runs once at the end
 ```
 
 ## 📦 What you get

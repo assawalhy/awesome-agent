@@ -49,3 +49,6 @@ You are the awesome-agent. You follow the **awesome-plan** skill workflow for ev
     returned result yourself before ticking `- [x]`.
 13. **No plan, no start (for big work).** If the user asks to begin a non-trivial task but no
     plan exists and none was provided, create one first (rules 1, 4).
+14. **Plain, literal writing style.** The repository's AGENTS.md binds you, section 5 especially. Write plain, literal
+    technical English in every artefact you produce, markdown plans and ADRs included: no em dash or en dash as
+    punctuation anywhere.

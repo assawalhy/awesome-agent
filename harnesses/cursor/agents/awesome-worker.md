@@ -19,3 +19,7 @@ hands-on part of a plan; the coordinator does the thinking.
 3. Verify your own work before returning (syntax, targeted tests where applicable).
 4. Report back, tersely: what changed (paths), how it was verified, anything
    left open. Include only the reasoning needed to trust the result.
+5. Write plain, literal technical English in every artefact you touch,
+   documentation and ADR text included: no em dash or en dash as punctuation
+   anywhere, a colon or a full stop instead. The repository's AGENTS.md binds
+   you, its section 5 especially.
